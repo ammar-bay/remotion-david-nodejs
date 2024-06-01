@@ -1,7 +1,26 @@
 {
+  "scripts": {
+    "start": "npm run build && node build/index.js",
+    "dev": "nodemon --watch src --exec ts-node src/index.ts",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
   "dependencies": {
+    "@remotion/install-whisper-cpp": "4.0.143",
     "@remotion/lambda": "4.0.143",
-    "ffprobe-static": "^3.1.0",
-    "fluent-ffmpeg": "^2.1.2"
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.13",
+    "nodemon": "^3.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
   }
 }

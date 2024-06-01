@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "module": "commonjs",
+    "target": "es6",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true, // Skip type checking of all declaration files (*.d.ts).
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "whisper.cpp",
+    "tests" // Exclude any test files or directories if not needed
+  ]
+}

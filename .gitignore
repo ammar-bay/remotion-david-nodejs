@@ -1,2 +1,8 @@
 # package directories
 node_modules
+whisper.cpp
+build
+.env
+src/*.mp3
+src/*.wav
+extra
