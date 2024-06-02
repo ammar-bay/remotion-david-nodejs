@@ -53,42 +53,42 @@ app.post(
       try {
         scenes = await Promise.all(
           body.scenes.map(async (scene) => {
-            try {
-              const filePath = await downloadAndConvertAudio(scene.audioUrl);
-              if (!filePath) {
-                throw new Error("Error downloading the audio file");
-              }
-
-              const { transcription } = await transcribe({
-                inputPath: filePath,
-                whisperPath: path.join(process.cwd(), "whisper.cpp"),
-                model: "medium.en",
-                tokenLevelTimestamps: true,
-              });
-
-              fs.unlink(filePath, (err) => {
-                if (err)
-                  console.error(
-                    `Error deleting the converted audio file: ${err}`
-                  );
-                else console.log("Converted audio file deleted");
-              });
-
-              const { captions } = convertToCaptions({
-                transcription,
-                combineTokensWithinMilliseconds: 200,
-              });
-
-              console.log("Captions generated for audio " + scene.audioUrl);
-
-              return {
-                ...scene,
-                captions,
-              };
-            } catch (error: any) {
-              console.error(error.message);
-              throw (new Error("Error generating captions"), error.message);
+            // try {
+            const filePath = await downloadAndConvertAudio(scene.audioUrl);
+            if (!filePath) {
+              throw new Error("Error downloading the audio file");
             }
+
+            const { transcription } = await transcribe({
+              inputPath: filePath,
+              whisperPath: path.join(process.cwd(), "whisper.cpp"),
+              model: "medium.en",
+              tokenLevelTimestamps: true,
+            });
+
+            fs.unlink(filePath, (err) => {
+              if (err)
+                console.error(
+                  `Error deleting the converted audio file: ${err}`
+                );
+              else console.log("Converted audio file deleted");
+            });
+
+            const { captions } = convertToCaptions({
+              transcription,
+              combineTokensWithinMilliseconds: 200,
+            });
+
+            console.log("Captions generated for audio " + scene.audioUrl);
+
+            return {
+              ...scene,
+              captions,
+            };
+            // } catch (error: any) {
+            //   console.error(error.message);
+            //   throw (new Error("Error generating captions"), error.message);
+            // }
           })
         );
       } catch (error: any) {
@@ -116,6 +116,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send("Something broke!");
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+server.setTimeout(600000);
