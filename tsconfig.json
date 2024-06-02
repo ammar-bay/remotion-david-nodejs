@@ -14,6 +14,7 @@
     "build",
     "dist",
     "whisper.cpp",
-    "tests" // Exclude any test files or directories if not needed
+    "tests", // Exclude any test files or directories if not needed
+    "extra"
   ]
 }
