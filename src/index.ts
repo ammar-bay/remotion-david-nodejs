@@ -49,52 +49,88 @@ app.post(
 
     let scenes: Scene[] = [];
 
-    if (body.caption)
+    //     if (body.caption)
+    //       try {
+    //         scenes = await Promise.all(
+    //           body.scenes.map(async (scene) => {
+    //             // try {
+    //             const filePath = await downloadAndConvertAudio(scene.audioUrl);
+    //             if (!filePath) {
+    //               throw new Error("Error downloading the audio file");
+    //             }
+    //
+    //             const { transcription } = await transcribe({
+    //               inputPath: filePath,
+    //               whisperPath: path.join(process.cwd(), "whisper.cpp"),
+    //               model: "medium.en",
+    //               tokenLevelTimestamps: true,
+    //             });
+    //
+    //             fs.unlink(filePath, (err) => {
+    //               if (err)
+    //                 console.error(
+    //                   `Error deleting the converted audio file: ${err}`
+    //                 );
+    //               else console.log("Converted audio file deleted");
+    //             });
+    //
+    //             const { captions } = convertToCaptions({
+    //               transcription,
+    //               combineTokensWithinMilliseconds: 200,
+    //             });
+    //
+    //             console.log("Captions generated for audio " + scene.audioUrl);
+    //
+    //             return {
+    //               ...scene,
+    //               captions,
+    //             };
+    //             // } catch (error: any) {
+    //             //   console.error(error.message);
+    //             //   throw (new Error("Error generating captions"), error.message);
+    //             // }
+    //           })
+    //         );
+    //       } catch (error: any) {
+    //         return res.status(500).send(error.message);
+    //       }
+    if (body.caption) {
       try {
-        scenes = await Promise.all(
-          body.scenes.map(async (scene) => {
-            // try {
-            const filePath = await downloadAndConvertAudio(scene.audioUrl);
-            if (!filePath) {
-              throw new Error("Error downloading the audio file");
-            }
+        for (const scene of body.scenes) {
+          const filePath = await downloadAndConvertAudio(scene.audioUrl);
+          if (!filePath) {
+            throw new Error("Error downloading the audio file");
+          }
 
-            const { transcription } = await transcribe({
-              inputPath: filePath,
-              whisperPath: path.join(process.cwd(), "whisper.cpp"),
-              model: "medium.en",
-              tokenLevelTimestamps: true,
-            });
+          const { transcription } = await transcribe({
+            inputPath: filePath,
+            whisperPath: path.join(process.cwd(), "whisper.cpp"),
+            model: "medium.en",
+            tokenLevelTimestamps: true,
+          });
 
-            fs.unlink(filePath, (err) => {
-              if (err)
-                console.error(
-                  `Error deleting the converted audio file: ${err}`
-                );
-              else console.log("Converted audio file deleted");
-            });
+          fs.unlink(filePath, (err) => {
+            if (err)
+              console.error(`Error deleting the converted audio file: ${err}`);
+            else console.log("Converted audio file deleted");
+          });
 
-            const { captions } = convertToCaptions({
-              transcription,
-              combineTokensWithinMilliseconds: 200,
-            });
+          const { captions } = convertToCaptions({
+            transcription,
+            combineTokensWithinMilliseconds: 200,
+          });
 
-            console.log("Captions generated for audio " + scene.audioUrl);
+          console.log("Captions generated for audio " + scene.audioUrl);
 
-            return {
-              ...scene,
-              captions,
-            };
-            // } catch (error: any) {
-            //   console.error(error.message);
-            //   throw (new Error("Error generating captions"), error.message);
-            // }
-          })
-        );
+          scenes.push({
+            ...scene,
+            captions,
+          });
+        }
       } catch (error: any) {
         return res.status(500).send(error.message);
       }
-    else scenes = body.scenes;
+    } else scenes = body.scenes;
 
     const data = await generateVideo({
       ...body,
