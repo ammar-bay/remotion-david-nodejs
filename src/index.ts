@@ -38,11 +38,11 @@ app.post(
   "/generate-video",
   validateScene,
   async (req: Request, res: Response) => {
-    const body: RequestBody = req.body;
+    let body: RequestBody = req.body;
 
     // check the body of the request using zod schema
     try {
-      requestBodySchema.parse(body);
+      body = requestBodySchema.parse(body);
       res.status(200).send("Video generation started");
     } catch (error: any) {
       return res.status(400).send(error.errors);
@@ -68,12 +68,13 @@ app.post(
     const maxParallelTasks = Math.floor(freeMemoryGB / memoryPerTaskGB);
 
     // Use p-limit to control parallel execution
-    const limit = pLimit(maxParallelTasks);
+    console.log(`Running ${maxParallelTasks || 1} tasks in parallel`);
+    const limit = pLimit(maxParallelTasks || 1);
 
     if (body.caption) {
       try {
         scenes = await Promise.all(
-          scenes.map((scene) =>
+          body.scenes.map((scene) =>
             limit(async () => {
               const filePath = await downloadAndConvertAudio(scene.audioUrl);
               if (!filePath) {
@@ -120,98 +121,8 @@ app.post(
               "Error occured while generating the captions: " + error.message,
           },
         });
-        // console.error(error.message);
-        // Handle errors appropriately
       }
     } else scenes = body.scenes;
-
-    // Using promise.all to download and convert audio files in parallel
-    //     if (body.caption)
-    //       try {
-    //         scenes = await Promise.all(
-    //           body.scenes.map(async (scene) => {
-    //             // try {
-    //             const filePath = await downloadAndConvertAudio(scene.audioUrl);
-    //             if (!filePath) {
-    //               throw new Error("Error downloading the audio file");
-    //             }
-    //
-    //             const { transcription } = await transcribe({
-    //               inputPath: filePath,
-    //               whisperPath: path.join(process.cwd(), "whisper.cpp"),
-    //               model: "medium.en",
-    //               tokenLevelTimestamps: true,
-    //             });
-    //
-    //             fs.unlink(filePath, (err) => {
-    //               if (err)
-    //                 console.error(
-    //                   `Error deleting the converted audio file: ${err}`
-    //                 );
-    //               else console.log("Converted audio file deleted");
-    //             });
-    //
-    //             const { captions } = convertToCaptions({
-    //               transcription,
-    //               combineTokensWithinMilliseconds: 200,
-    //             });
-    //
-    //             console.log("Captions generated for audio " + scene.audioUrl);
-    //
-    //             return {
-    //               ...scene,
-    //               captions,
-    //             };
-    //             // } catch (error: any) {
-    //             //   console.error(error.message);
-    //             //   throw (new Error("Error generating captions"), error.message);
-    //             // }
-    //           })
-    //         );
-    //       } catch (error: any) {
-    //         return res.status(500).send(error.message);
-    //       }
-
-    // Using for loop to download and convert audio files in sequence (one after the other)
-    //     if (body.caption) {
-    //       try {
-    //         for (const scene of body.scenes) {
-    //           const filePath = await downloadAndConvertAudio(scene.audioUrl);
-    //           if (!filePath) {
-    //             throw new Error("Error downloading the audio file");
-    //           }
-    //
-    //           const { transcription } = await transcribe({
-    //             inputPath: filePath,
-    //             whisperPath: path.join(process.cwd(), "whisper.cpp"),
-    //             model: "medium.en",
-    //             tokenLevelTimestamps: true,
-    //           });
-    //
-    //           fs.unlink(filePath, (err) => {
-    //             if (err)
-    //               console.error(`Error deleting the converted audio file: ${err}`);
-    //             else console.log("Converted audio file deleted");
-    //           });
-    //
-    //           const { captions } = convertToCaptions({
-    //             transcription,
-    //             combineTokensWithinMilliseconds: 200,
-    //           });
-    //
-    //           console.log("Captions generated for audio " + scene.audioUrl);
-    //
-    //           scenes.push({
-    //             ...scene,
-    //             captions,
-    //           });
-    //         }
-    //       } catch (error: any) {
-    //         return axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
-    //           error: error.message,
-    //         });
-    //       }
-    //     } else scenes = body.scenes;
 
     try {
       await generateVideo({
