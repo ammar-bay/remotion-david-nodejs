@@ -1,9 +1,11 @@
+import { Request, Response } from "express";
 import { z } from "zod";
 
 const sceneSchema = z.object({
   videoUrl: z.string().url(),
   audioUrl: z.string().url(),
-  padding: z.number().optional(), 
+  padding: z.number().optional(),
+  filePath: z.string().optional(),
   // captions: z
   //   .array(
   //     z.object({
@@ -27,4 +29,4 @@ const requestBodySchema = z.object({
 type Scene = z.infer<typeof sceneSchema>;
 type RequestBody = z.infer<typeof requestBodySchema>;
 
-export { sceneSchema, requestBodySchema, Scene, RequestBody };
+export { RequestBody, Scene, requestBodySchema, sceneSchema };

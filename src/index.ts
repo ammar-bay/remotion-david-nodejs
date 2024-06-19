@@ -1,21 +1,16 @@
 import {
-  convertToCaptions,
   downloadWhisperModel,
   installWhisperCpp,
-  transcribe,
 } from "@remotion/install-whisper-cpp";
 import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
-import fs from "fs";
 import path from "path";
 import validateScene from "./middleware";
-import { RequestBody, Scene, requestBodySchema } from "./types";
-import { checkHealth, downloadAndConvertAudio, generateVideo } from "./utils";
-import pLimit from "p-limit";
-import os from "os";
-import axios from "axios";
+import { RequestBody } from "./types";
+import { queueProcessor } from "./utils";
+
 dotenv.config();
 
 const app = express();
@@ -26,120 +21,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
+  res.send("Server is up and running :)");
 });
 
-app.get("/health", (req: Request, res: Response) => {
-  checkHealth();
-  res.send("OK");
+app.post("/generate-video", validateScene, (req: Request, res: Response) => {
+  queueProcessor.addToQueue(req.body as RequestBody);
+  res.status(200).send("Video generation request queued");
 });
-
-app.post(
-  "/generate-video",
-  validateScene,
-  async (req: Request, res: Response) => {
-    let body: RequestBody = req.body;
-
-    // check the body of the request using zod schema
-    try {
-      body = requestBodySchema.parse(body);
-      res.status(200).send("Video generation started");
-    } catch (error: any) {
-      return res.status(400).send(error.errors);
-    }
-
-    const { alreadyExisted: whisperAlreadyExisted } = await installWhisperCpp({
-      to: path.join(process.cwd(), "whisper.cpp"),
-      version: "1.5.5",
-    });
-
-    const { alreadyExisted: modelAlreadyExisted } = await downloadWhisperModel({
-      model: "medium.en",
-      folder: path.join(process.cwd(), "whisper.cpp"),
-    });
-
-    let scenes: Scene[] = [];
-
-    // Check available memory (in bytes) and convert to gigabytes
-    const freeMemoryGB = os.freemem() / 1024 / 1024 / 1024;
-    const memoryPerTaskGB = 1.5;
-
-    // Calculate how many tasks can be run in parallel
-    const maxParallelTasks = Math.floor(freeMemoryGB / memoryPerTaskGB);
-
-    // Use p-limit to control parallel execution
-    console.log(`Running ${maxParallelTasks || 1} tasks in parallel`);
-    const limit = pLimit(maxParallelTasks || 1);
-
-    if (body.caption) {
-      try {
-        scenes = await Promise.all(
-          body.scenes.map((scene) =>
-            limit(async () => {
-              const filePath = await downloadAndConvertAudio(scene.audioUrl);
-              if (!filePath) {
-                throw new Error("Error downloading the audio file");
-              }
-
-              const { transcription } = await transcribe({
-                inputPath: filePath,
-                whisperPath: path.join(process.cwd(), "whisper.cpp"),
-                model: "medium.en",
-                tokenLevelTimestamps: true,
-              });
-
-              // Delete the file asynchronously without waiting
-              fs.unlink(filePath, (err) => {
-                if (err) {
-                  console.error(
-                    `Error deleting the converted audio file: ${err}`
-                  );
-                } else {
-                  console.log("Converted audio file deleted");
-                }
-              });
-
-              const { captions } = convertToCaptions({
-                transcription,
-                combineTokensWithinMilliseconds: 200,
-              });
-
-              console.log("Captions generated for audio " + scene.audioUrl);
-
-              return {
-                ...scene,
-                captions,
-              };
-            })
-          )
-        );
-      } catch (error: any) {
-        return axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
-          type: "error",
-          errors: {
-            message:
-              "Error occured while generating the captions: " + error.message,
-          },
-        });
-      }
-    } else scenes = body.scenes;
-
-    try {
-      await generateVideo({
-        ...body,
-        scenes,
-      });
-    } catch (error: any) {
-      return axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
-        type: "error",
-
-        errors: {
-          message: "Error occured while generating the video: " + error.message,
-        },
-      });
-    }
-  }
-);
 
 app.post("/webhook", async (req: Request, res: Response) => {
   console.log("WEBHOOK: ", req.body);
@@ -152,8 +40,17 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send("Something broke!");
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  await installWhisperCpp({
+    to: path.join(process.cwd(), "whisper.cpp"),
+    version: "1.5.5",
+  });
+
+  await downloadWhisperModel({
+    model: "medium.en",
+    folder: path.join(process.cwd(), "whisper.cpp"),
+  });
 });
 
 server.setTimeout(600000);
