@@ -128,83 +128,73 @@ class QueueProcessor {
     this.processing = true;
     let body = this.requestQueue.shift()!;
 
-    try {
-      let scenes: Scene[] = [];
+    let scenes: Scene[] = [];
 
-      const freeMemoryGB = os.freemem() / 1024 / 1024 / 1024;
-      const memoryPerTaskGB = 1.5;
-      const maxParallelTasks = Math.floor(freeMemoryGB / memoryPerTaskGB);
-      const limit = pLimit(maxParallelTasks || 1);
+    // const freeMemoryGB = os.freemem() / 1024 / 1024 / 1024;
+    // const memoryPerTaskGB = 1.5;
+    // const maxParallelTasks = Math.floor(freeMemoryGB / memoryPerTaskGB);
+    // const limit = pLimit(maxParallelTasks || 1);
+    const limit = pLimit(1);
 
-      if (body.caption) {
-        try {
-          scenes = await Promise.all(
-            body.scenes.map((scene) =>
-              limit(async () => {
-                if (!scene.filePath) {
-                  throw new Error("Error downloading the audio file");
-                }
-
-                const { transcription } = await transcribe({
-                  inputPath: scene.filePath,
-                  whisperPath: path.join(process.cwd(), "whisper.cpp"),
-                  model: "medium.en",
-                  tokenLevelTimestamps: true,
-                });
-
-                fs.unlink(scene.filePath, (err) => {
-                  if (err) {
-                    console.error(
-                      `Error deleting the converted audio file: ${err}`
-                    );
-                  } else {
-                    console.log("Converted audio file deleted");
-                  }
-                });
-
-                const { captions } = convertToCaptions({
-                  transcription,
-                  combineTokensWithinMilliseconds: 200,
-                });
-
-                console.log("Captions generated for audio " + scene.audioUrl);
-
-                return {
-                  ...scene,
-                  captions,
-                };
-              })
-            )
-          );
-        } catch (error: any) {
-          await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
-            type: "error",
-            errors: {
-              message:
-                "Error occurred while generating the captions: " +
-                error.message,
-            },
-          });
-          throw error;
-        }
-      } else {
-        scenes = body.scenes;
-      }
-
+    if (body.caption) {
       try {
-        await generateVideo({
-          ...body,
-          scenes,
-        });
+        scenes = await Promise.all(
+          body.scenes.map((scene) =>
+            limit(async () => {
+              if (!scene.filePath) {
+                throw new Error("Error downloading the audio file");
+              }
+
+              const { transcription } = await transcribe({
+                inputPath: scene.filePath,
+                whisperPath: path.join(process.cwd(), "whisper.cpp"),
+                model: "medium.en",
+                tokenLevelTimestamps: true,
+              });
+
+              fs.unlink(scene.filePath, (err) => {
+                if (err) {
+                  console.error(
+                    `Error deleting the converted audio file: ${err}`
+                  );
+                } else {
+                  console.log("Converted audio file deleted");
+                }
+              });
+
+              const { captions } = convertToCaptions({
+                transcription,
+                combineTokensWithinMilliseconds: 200,
+              });
+
+              console.log("Captions generated for audio " + scene.audioUrl);
+
+              return {
+                ...scene,
+                captions,
+              };
+            })
+          )
+        );
       } catch (error: any) {
         await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
           type: "error",
           errors: {
             message:
-              "Error occurred while generating the video: " + error.message,
+              "Error occurred while generating the captions: " + error.message,
           },
         });
+        throw error;
       }
+    } else {
+      scenes = body.scenes;
+    }
+
+    try {
+      await generateVideo({
+        ...body,
+        scenes,
+      });
     } catch (error: any) {
       await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
         type: "error",
