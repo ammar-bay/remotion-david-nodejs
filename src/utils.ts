@@ -134,7 +134,7 @@ class QueueProcessor {
     // const memoryPerTaskGB = 1.5;
     // const maxParallelTasks = Math.floor(freeMemoryGB / memoryPerTaskGB);
     // const limit = pLimit(maxParallelTasks || 1);
-    const limit = pLimit(1);
+    const limit = pLimit(2);
 
     if (body.caption) {
       try {
