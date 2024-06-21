@@ -92,6 +92,19 @@ class QueueProcessor {
   private requestQueue: RequestBody[] = [];
   private processing: boolean = false;
 
+  public async retryTranscribe(args: any, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await transcribe(args);
+      } catch (error) {
+        if (attempt === retries) {
+          throw error;
+        }
+        console.error(`Transcribe attempt ${attempt} failed. Retrying...`);
+      }
+    }
+  }
+
   public async addToQueue(body: RequestBody): Promise<void> {
     try {
       const scenes = await Promise.all(
@@ -147,12 +160,19 @@ class QueueProcessor {
                 throw new Error("Error downloading the audio file");
               }
 
-              const { transcription } = await transcribe({
+              // const { transcription } = await transcribe({
+              //   inputPath: scene.filePath,
+              //   whisperPath: path.join(process.cwd(), "whisper.cpp"),
+              //   model: "medium.en",
+              //   tokenLevelTimestamps: true,
+              // });
+
+              const { transcription } = (await this.retryTranscribe({
                 inputPath: scene.filePath,
                 whisperPath: path.join(process.cwd(), "whisper.cpp"),
                 model: "medium.en",
                 tokenLevelTimestamps: true,
-              });
+              })) as any;
 
               fs.unlink(scene.filePath, (err) => {
                 if (err) {
@@ -192,7 +212,7 @@ class QueueProcessor {
       console.error(
         "Error occurred while generating the video with Job ID: " +
           body.videoId +
-          "\n ERROR" +
+          "\n ERROR: " +
           error.message
       );
       await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
