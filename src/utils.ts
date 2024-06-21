@@ -178,6 +178,7 @@ class QueueProcessor {
             })
           )
         );
+        console.log(scenes.length + " scenes processed");
       } catch (error: any) {
         console.error(
           "Error occurred while generating the captions: " + error.message
