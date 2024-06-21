@@ -92,7 +92,7 @@ class QueueProcessor {
   private requestQueue: RequestBody[] = [];
   private processing: boolean = false;
 
-  public async retryTranscribe(args: any, retries = 3) {
+  public async retryTranscribe(args: any, retries = 5) {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         return await transcribe(args);
@@ -203,10 +203,10 @@ class QueueProcessor {
         scenes = body.scenes;
       }
 
-      // await generateVideo({
-      //   ...body,
-      //   scenes,
-      // });
+      await generateVideo({
+        ...body,
+        scenes,
+      });
       console.log("Job with ID " + body.videoId + " completed successfully");
     } catch (error: any) {
       console.error(
