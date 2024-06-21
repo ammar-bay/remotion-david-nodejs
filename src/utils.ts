@@ -138,8 +138,8 @@ class QueueProcessor {
     // const limit = pLimit(maxParallelTasks || 1);
     const limit = pLimit(2);
 
-    if (body.caption) {
-      try {
+    try {
+      if (body.caption) {
         scenes = await Promise.all(
           body.scenes.map((scene) =>
             limit(async () => {
@@ -179,30 +179,21 @@ class QueueProcessor {
           )
         );
         console.log(scenes.length + " scenes processed");
-      } catch (error: any) {
-        console.error(
-          "Error occurred while generating the captions: " + error.message
-        );
-        await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
-          type: "error",
-          errors: {
-            message:
-              "Error occurred while generating the captions: " + error.message,
-          },
-        });
+      } else {
+        scenes = body.scenes;
       }
-    } else {
-      scenes = body.scenes;
-    }
 
-    try {
-      // await generateVideo({
-      //   ...body,
-      //   scenes,
-      // });
+      await generateVideo({
+        ...body,
+        scenes,
+      });
+      console.log("Job with ID " + body.videoId + " completed successfully");
     } catch (error: any) {
       console.error(
-        "Error occurred while generating the video: " + error.message
+        "Error occurred while generating the video with Job ID: " +
+          body.videoId +
+          "\n ERROR" +
+          error.message
       );
       await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
         type: "error",
@@ -211,11 +202,10 @@ class QueueProcessor {
             "Error occurred while generating the video: " + error.message,
         },
       });
+    } finally {
+      this.processing = false;
+      this.processQueue();
     }
-
-    this.processing = false;
-    console.log("Job with ID " + body.videoId + " completed");
-    this.processQueue();
   }
 }
 
