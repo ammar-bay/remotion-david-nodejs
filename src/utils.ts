@@ -98,7 +98,9 @@ class QueueProcessor {
         body.scenes.map(async (scene) => {
           const filePath = await downloadAndConvertAudio(scene.audioUrl);
           if (!filePath) {
-            throw new Error("Error downloading the audio file");
+            throw new Error(
+              "Error downloading the audio file for scene " + scene.audioUrl
+            );
           }
           return { ...scene, filePath };
         })
@@ -187,7 +189,6 @@ class QueueProcessor {
               "Error occurred while generating the captions: " + error.message,
           },
         });
-        throw error;
       }
     } else {
       scenes = body.scenes;
@@ -198,8 +199,6 @@ class QueueProcessor {
       //   ...body,
       //   scenes,
       // });
-
-      console.log("Video rendering completed");
     } catch (error: any) {
       console.error(
         "Error occurred while generating the video: " + error.message
