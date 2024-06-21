@@ -149,7 +149,7 @@ class QueueProcessor {
     // const memoryPerTaskGB = 1.5;
     // const maxParallelTasks = Math.floor(freeMemoryGB / memoryPerTaskGB);
     // const limit = pLimit(maxParallelTasks || 1);
-    const limit = pLimit(1);
+    const limit = pLimit(2);
 
     try {
       if (body.caption) {
@@ -203,10 +203,10 @@ class QueueProcessor {
         scenes = body.scenes;
       }
 
-      // await generateVideo({
-      //   ...body,
-      //   scenes,
-      // });
+      await generateVideo({
+        ...body,
+        scenes,
+      });
       console.log("Job with ID " + body.videoId + " completed successfully");
     } catch (error: any) {
       console.error(
