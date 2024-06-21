@@ -177,7 +177,9 @@ class QueueProcessor {
           )
         );
       } catch (error: any) {
-        console.error("Error occurred while generating the captions: " + error.message)
+        console.error(
+          "Error occurred while generating the captions: " + error.message
+        );
         await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
           type: "error",
           errors: {
@@ -192,12 +194,16 @@ class QueueProcessor {
     }
 
     try {
-      await generateVideo({
-        ...body,
-        scenes,
-      });
+      // await generateVideo({
+      //   ...body,
+      //   scenes,
+      // });
+
+      console.log("Video rendering completed");
     } catch (error: any) {
-      console.error("Error occurred while generating the video: " + error.message);
+      console.error(
+        "Error occurred while generating the video: " + error.message
+      );
       await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
         type: "error",
         errors: {
