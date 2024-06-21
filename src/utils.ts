@@ -183,10 +183,10 @@ class QueueProcessor {
         scenes = body.scenes;
       }
 
-      await generateVideo({
-        ...body,
-        scenes,
-      });
+      // await generateVideo({
+      //   ...body,
+      //   scenes,
+      // });
       console.log("Job with ID " + body.videoId + " completed successfully");
     } catch (error: any) {
       console.error(
