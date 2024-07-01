@@ -14,7 +14,7 @@ const validateScene = (req: Request, res: Response, next: NextFunction) => {
   }
 
   // If validation is successful, replace req.body with the validated and defaulted data
-  req.body = result.data;
+  req.body = requestBodySchema.parse(req.body);
 
   // Continue with the next middleware
   next();

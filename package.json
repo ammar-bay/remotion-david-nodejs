@@ -8,11 +8,13 @@
   "dependencies": {
     "@remotion/install-whisper-cpp": "4.0.143",
     "@remotion/lambda": "4.0.143",
+    "assemblyai": "^4.5.0",
     "axios": "^1.7.2",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "p-limit": "^3.1.0"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.5",
