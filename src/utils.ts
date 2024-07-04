@@ -9,14 +9,13 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { RequestBody, Scene } from "./types";
-
 import { AssemblyAI } from "assemblyai";
+
+dotenv.config();
 
 const assemblyAiClient = new AssemblyAI({
   apiKey: process.env.ASSEMBLYAI_API_KEY || "",
 });
-
-dotenv.config();
 
 const webhook: RenderMediaOnLambdaInput["webhook"] = {
   url: process.env.REMOTION_WEBHOOK_URL || "",
