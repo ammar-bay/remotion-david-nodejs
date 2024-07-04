@@ -40,7 +40,6 @@ app.post(
     let scenes: Scene[] = [];
 
     try {
-      
       if (body.caption) scenes = await generateCaptions(body.scenes);
       else scenes = body.scenes;
 
@@ -49,6 +48,7 @@ app.post(
         scenes,
       });
     } catch (error: any) {
+      console.error("Error occurred while generating the video: ", error);
       await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
         type: "error",
         errors: {
