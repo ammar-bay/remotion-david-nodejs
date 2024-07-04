@@ -68,7 +68,7 @@ export async function generateCaptions(scenes: Scene[]): Promise<Scene[]> {
         audio_url: scene.audioUrl,
       });
 
-      //       console.log("Captions generated for audio " + scene.audioUrl);
+      console.log("Captions generated for audio " + scene.audioUrl);
       //       console.log("Transcript: ", transcript);
 
       return {
