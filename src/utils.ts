@@ -69,6 +69,7 @@ export async function generateCaptions(scenes: Scene[]): Promise<Scene[]> {
       });
 
       console.log("Captions generated for audio " + scene.audioUrl);
+      console.log("Transcript: ", transcript);
 
       return {
         ...scene,
@@ -92,6 +93,9 @@ export async function generateVideo(
   console.log("Input props: ", inputProps);
   console.log("Webhook: ", webhook);
 
+  // save inputProps to a file
+  fs.writeFileSync("inputProps.json", JSON.stringify(inputProps, null, 2));
+
   const { bucketName, renderId } = await renderMediaOnLambda({
     region:
       (process.env
@@ -106,6 +110,8 @@ export async function generateVideo(
     outName: inputProps.videoId + ".mp4",
   });
   console.log("Video rendering started");
+  console.log("Bucket name: ", bucketName);
+  console.log("Render ID: ", renderId);
   return { bucketName, renderId };
 }
 
