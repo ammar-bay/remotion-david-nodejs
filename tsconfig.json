@@ -8,7 +8,7 @@
     "skipLibCheck": true, // Skip type checking of all declaration files (*.d.ts).
     "rootDir": "./src"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "extra/index copy.ts", "extra/index copy 2.ts"],
   "exclude": [
     "node_modules",
     "build",

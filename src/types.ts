@@ -1,25 +1,17 @@
-// export interface Scene {
-//   video: string;
-//   audio: string;
-//   padding?: number;
-// }
-//
-// export interface RequestBody {
-//   scenes: Scene[];
-//
-// }
+import { Request, Response } from "express";
 import { z } from "zod";
 
-// Define the Zod schemas
 const sceneSchema = z.object({
   videoUrl: z.string().url(),
   audioUrl: z.string().url(),
-  padding: z.number().optional(), // Mark as optional since it was not required in the Joi schema
+  padding: z.number().optional(),
+  filePath: z.string().optional(),
   captions: z
     .array(
       z.object({
         text: z.string(),
-        startInSeconds: z.number(),
+        start: z.number(),
+        end: z.number(),
       })
     )
     .optional(),
@@ -38,4 +30,4 @@ const requestBodySchema = z.object({
 type Scene = z.infer<typeof sceneSchema>;
 type RequestBody = z.infer<typeof requestBodySchema>;
 
-export { sceneSchema, requestBodySchema, Scene, RequestBody };
+export { RequestBody, Scene, requestBodySchema, sceneSchema };
