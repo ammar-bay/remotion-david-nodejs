@@ -62,6 +62,7 @@ const webhook: RenderMediaOnLambdaInput["webhook"] = {
 // }
 
 export async function generateCaptions(scenes: Scene[]): Promise<Scene[]> {
+  console.log("Generating captions for scenes");
   return await Promise.all(
     scenes.map(async (scene) => {
       const transcript = await assemblyAiClient.transcripts.transcribe({

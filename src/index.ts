@@ -40,6 +40,7 @@ app.post(
     let scenes: Scene[] = [];
 
     try {
+      
       if (body.caption) scenes = await generateCaptions(body.scenes);
       else scenes = body.scenes;
 
