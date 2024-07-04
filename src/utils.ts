@@ -13,7 +13,7 @@ import { RequestBody, Scene } from "./types";
 import { AssemblyAI } from "assemblyai";
 
 const assemblyAiClient = new AssemblyAI({
-  apiKey: "a9a22b4df3134218bcd91927da013f1b",
+  apiKey: process.env.ASSEMBLYAI_API_KEY || "",
 });
 
 dotenv.config();
@@ -68,8 +68,8 @@ export async function generateCaptions(scenes: Scene[]): Promise<Scene[]> {
         audio_url: scene.audioUrl,
       });
 
-      console.log("Captions generated for audio " + scene.audioUrl);
-      console.log("Transcript: ", transcript);
+      //       console.log("Captions generated for audio " + scene.audioUrl);
+      //       console.log("Transcript: ", transcript);
 
       return {
         ...scene,
@@ -94,7 +94,7 @@ export async function generateVideo(
   console.log("Webhook: ", webhook);
 
   // save inputProps to a file
-  fs.writeFileSync("inputProps.json", JSON.stringify(inputProps, null, 2));
+  // fs.writeFileSync("inputProps.json", JSON.stringify(inputProps, null, 2));
 
   const { bucketName, renderId } = await renderMediaOnLambda({
     region:
