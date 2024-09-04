@@ -65,7 +65,7 @@ const processMessageWithRetry = async (body: RequestBody) => {
   operation.attempt(async (currentAttempt) => {
     try {
       await processMessage(body);
-    } catch (error) {
+    } catch (error: any) {
       if (operation.retry(error)) {
         logToCloudWatch(`Attempt ${currentAttempt} failed. There are ${operation.attempts()} retries left.`);
         return;
