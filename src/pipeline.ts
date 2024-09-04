@@ -1,5 +1,5 @@
 import { RequestBody } from "./types";
-import { generateVideo } from "./utils";
+import { generateVideo, sqs } from "./utils";
 import { connectToDatabase } from "./utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
@@ -12,6 +12,23 @@ export const processRequestPipeline = async (body: RequestBody) => {
     const ongoingRenders = await collection.countDocuments();
     if (ongoingRenders >= 1) { // Assuming concurrency limit is 1
       console.log("Concurrency limit reached, cannot process new request.");
+      const queueUrl = process.env.SQS_QUEUE_URL;
+      if (!queueUrl) {
+        console.error("SQS_QUEUE_URL is not defined in the environment variables");
+        return;
+      }
+
+      const params = {
+        QueueUrl: queueUrl,
+        MessageBody: JSON.stringify(body),
+      };
+
+      try {
+        await sqs.sendMessage(params).promise();
+        console.log(`Request for videoId: ${body.videoId} sent to SQS for future processing.`);
+      } catch (error) {
+        console.error("Error sending message to SQS: ", error);
+      }
       return;
     }
 
