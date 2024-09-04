@@ -23,33 +23,27 @@ const processQueue = async () => {
     WaitTimeSeconds: 20,
   };
 
-  while (true) {
-    try {
-      const data = await sqs.receiveMessage(params).promise();
-      if (data.Messages && data.Messages.length > 0) {
-        const message = data.Messages[0];
-        const body: RequestBody = JSON.parse(message.Body || '{}');
+  try {
+    const data = await sqs.receiveMessage(params).promise();
+    if (data.Messages && data.Messages.length > 0) {
+      const message = data.Messages[0];
+      const body: RequestBody = JSON.parse(message.Body || '{}');
 
-        // Add job to pending
-        pendingJobs.add(body.videoId);
+      // Add job to pending
+      pendingJobs.add(body.videoId);
 
-        // Process the message
-        await processMessageWithRetry(body);
+      // Process the message
+      await processMessageWithRetry(body);
 
-        // Delete the message from the queue
-        await sqs.deleteMessage({
-          QueueUrl: queueUrl,
-          ReceiptHandle: message.ReceiptHandle!,
-        }).promise();
-      }
-    } catch (error: any) {
-      console.error("Error processing queue: ", error);
-    } finally {
-      // Ensure the loop continues even if an error occurs
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Delete the message from the queue
+      await sqs.deleteMessage({
+        QueueUrl: queueUrl,
+        ReceiptHandle: message.ReceiptHandle!,
+      }).promise();
     }
+  } catch (error: any) {
+    console.error("Error processing queue: ", error);
   }
-  console.log("Exiting processQueue loop");
 }
 
 export const processMessageWithRetry = async (body: RequestBody) => {

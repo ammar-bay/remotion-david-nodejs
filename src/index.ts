@@ -68,8 +68,8 @@ app.post("/webhook", async (req: Request, res: Response) => {
   // Remove job from pending
   pendingJobs.delete(videoId);
 
-  // Process next message
-  processQueue();
+  // Process next message only after the current one is completed
+  await processQueue();
 
   res.status(200).send("Webhook received");
 });
