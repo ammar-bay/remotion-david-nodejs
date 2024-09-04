@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, pendingJobs } from "./utils";
+import { connectToDatabase, pendingJobs, checkAndProcessQueue } from "./utils";
 import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
@@ -93,7 +93,7 @@ const server = app.listen(PORT, async () => {
 
   if (ongoingRenders < 1) { // Assuming concurrency limit is 1
     console.log("Starting to process the queue on server startup.");
-    await processQueue();
+    await checkAndProcessQueue();
   } else {
     console.log("Concurrency limit reached on startup, will not start processing immediately.");
   }
