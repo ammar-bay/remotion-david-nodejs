@@ -237,7 +237,13 @@ export const connectToDatabase = async () => {
     throw new Error("MONGODB_URI is not defined in the environment variables");
   }
   const client = new MongoClient(uri);
-  await client.connect();
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB successfully");
+  } catch (error) {
+    console.error("Failed to connect to MongoDB:", error);
+    throw error;
+  }
   return client.db(process.env.MONGODB_DB_NAME);
 };
 

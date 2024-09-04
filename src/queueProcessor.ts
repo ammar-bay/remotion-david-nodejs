@@ -35,13 +35,15 @@ const processQueue = async () => {
       const db = await connectToDatabase();
       const collection = db.collection('promotion_video_render');
       const ongoingRenders = await collection.countDocuments();
+      console.log(`Current ongoing renders: ${ongoingRenders}`);
 
       if (ongoingRenders < CONCURRENCY_LIMIT) {
         // Add job to pending
         pendingJobs.add(body.videoId);
 
         // Insert a new entry in MongoDB
-        await collection.insertOne({ videoId: body.videoId, status: 'ongoing', timestamp: new Date() });
+        const insertResult = await collection.insertOne({ videoId: body.videoId, status: 'ongoing', timestamp: new Date() });
+        console.log(`Inserted job with videoId: ${body.videoId}, Inserted ID: ${insertResult.insertedId}`);
 
         // Process the message
         await processMessageWithRetry(body);
