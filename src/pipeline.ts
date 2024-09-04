@@ -1,24 +1,24 @@
 import { RequestBody } from "./types";
-import { sqs } from "./utils";
+import { RequestBody } from "./types";
+import { generateVideo } from "./utils"; // Assuming generateVideo sends the job to Lambda
+import { connectToDatabase } from "./utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
-  const queueUrl = process.env.SQS_QUEUE_URL;
-  if (!queueUrl) {
-    throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
-  }
-
-  const params = {
-    QueueUrl: queueUrl,
-    MessageBody: JSON.stringify(body),
-  };
-
   try {
-    const result = await sqs.sendMessage(params).promise();
-    if (result.MessageId) {
-      console.log(`Message sent to SQS for videoId: ${body.videoId}`);
-      // Add logic to process the message, e.g., interact with Lambda or MongoDB
+    // Connect to MongoDB
+    const db = await connectToDatabase();
+    const collection = db.collection('promotion_video_render');
+
+    // Insert the message into MongoDB
+    await collection.insertOne({ videoId: body.videoId, status: 'processing' });
+    console.log(`Inserted videoId: ${body.videoId} into MongoDB`);
+
+    // Send the job to Lambda
+    const result = await generateVideo(body);
+    if (result) {
+      console.log(`Video rendering started for videoId: ${body.videoId}`);
     } else {
-      console.error(`Failed to send message to SQS for videoId: ${body.videoId}`);
+      console.error(`Failed to start video rendering for videoId: ${body.videoId}`);
     }
   } catch (error) {
     console.error("Error in request pipeline: ", error);
