@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
 import { generateCaptions, generateVideo, logToCloudWatch } from './utils';
-const pRetry = (await import('p-retry')).default;
+import pRetry from 'p-retry';
 import { RequestBody } from './types';
 
 const sqs = new AWS.SQS({ region: process.env.SQS_AWS_DEFAULT_REGION });
