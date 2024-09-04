@@ -117,6 +117,18 @@ export const processQueue = async () => {
     throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
   }
 
+  const logQueueAttributes = async () => {
+    try {
+      const attributes = await sqs.getQueueAttributes({
+        QueueUrl: queueUrl,
+        AttributeNames: ['ApproximateNumberOfMessages', 'ApproximateNumberOfMessagesNotVisible'],
+      }).promise();
+      console.log("SQS Queue Attributes: ", attributes.Attributes);
+    } catch (error) {
+      console.error("Error fetching SQS queue attributes: ", error);
+    }
+  };
+
   const params = {
     QueueUrl: queueUrl,
     MaxNumberOfMessages: 1,
@@ -126,10 +138,13 @@ export const processQueue = async () => {
   while (true) {
 
     try {
+      await logQueueAttributes();
       const data = await sqs.receiveMessage(params).promise();
       if (data.Messages && data.Messages.length > 0) {
         const message = data.Messages[0];
+        console.log("Received message from SQS: ", message);
         const body: RequestBody = JSON.parse(message.Body || '{}');
+        console.log(`Processing message for videoId: ${body.videoId}`);
 
         console.log(`Processing message from SQS for videoId: ${body.videoId}`);
 
