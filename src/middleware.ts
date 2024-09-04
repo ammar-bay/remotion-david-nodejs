@@ -26,10 +26,12 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
 
   try {
     const db = await connectToDatabase();
+    console.log("Connected to MongoDB for deletion operation");
     const collection = db.collection('promotion_video_render');
 
     // Remove entry from MongoDB
     const result = await collection.deleteOne({ videoId });
+    console.log(`Attempted to delete entry for videoId: ${videoId}, Deleted count: ${result.deletedCount}`);
 
     if (result.deletedCount === 0) {
       console.warn(`No entry found for videoId: ${videoId}`);
