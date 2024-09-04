@@ -10,6 +10,51 @@ import fs from "fs";
 import path from "path";
 import AWS from 'aws-sdk';
 import { RequestBody, Scene } from "./types";
+
+export const pendingJobs = new Set<string>();
+
+export const processQueue = async () => {
+  const queueUrl = process.env.SQS_QUEUE_URL;
+  if (!queueUrl) {
+    throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
+  }
+
+  const params = {
+    QueueUrl: queueUrl,
+    MaxNumberOfMessages: 1,
+    WaitTimeSeconds: 20,
+  };
+
+  while (true) {
+    if (pendingJobs.size > 0) {
+      // Wait for pending jobs to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      continue;
+    }
+
+    try {
+      const data = await sqs.receiveMessage(params).promise();
+      if (data.Messages && data.Messages.length > 0) {
+        const message = data.Messages[0];
+        const body: RequestBody = JSON.parse(message.Body || '{}');
+
+        // Add job to pending
+        pendingJobs.add(body.videoId);
+
+        // Process the message
+        await processMessageWithRetry(body);
+
+        // Delete the message from the queue
+        await sqs.deleteMessage({
+          QueueUrl: queueUrl,
+          ReceiptHandle: message.ReceiptHandle!,
+        }).promise();
+      }
+    } catch (error) {
+      console.error("Error processing queue: ", error);
+    }
+  }
+}
 import { AssemblyAI } from "assemblyai";
 
 dotenv.config();

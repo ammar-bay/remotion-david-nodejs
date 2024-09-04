@@ -48,7 +48,7 @@ const processQueue = async () => {
           ReceiptHandle: message.ReceiptHandle!,
         }).promise();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing queue: ", error);
     }
   }
