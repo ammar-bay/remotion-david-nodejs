@@ -13,8 +13,12 @@ export const processRequestPipeline = async (body: RequestBody) => {
   };
 
   try {
-    await sqs.sendMessage(params).promise();
-    console.log(`Message sent to SQS for videoId: ${body.videoId}`);
+    const result = await sqs.sendMessage(params).promise();
+    if (result.MessageId) {
+      console.log(`Message sent to SQS for videoId: ${body.videoId}`);
+    } else {
+      console.error(`Failed to send message to SQS for videoId: ${body.videoId}`);
+    }
 
     console.log(`Message sent to SQS for videoId: ${body.videoId}`);
   } catch (error) {

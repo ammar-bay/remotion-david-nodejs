@@ -135,19 +135,23 @@ const processQueue = async () => {
         const message = data.Messages[0];
         const body: RequestBody = JSON.parse(message.Body || '{}');
 
-        // Add job to pending
-        pendingJobs.add(body.videoId);
+        if (!pendingJobs.has(body.videoId)) {
+          // Add job to pending
+          pendingJobs.add(body.videoId);
 
-        console.log(`Processing message from SQS for videoId: ${body.videoId}`);
+          console.log(`Processing message from SQS for videoId: ${body.videoId}`);
 
-        // Process the message
-        await processRequestPipeline(body);
+          // Process the message
+          await processRequestPipeline(body);
 
-        // Delete the message from the queue
-        await sqs.deleteMessage({
-          QueueUrl: queueUrl,
-          ReceiptHandle: message.ReceiptHandle!,
-        }).promise();
+          // Delete the message from the queue
+          await sqs.deleteMessage({
+            QueueUrl: queueUrl,
+            ReceiptHandle: message.ReceiptHandle!,
+          }).promise();
+        } else {
+          console.log(`Job with videoId: ${body.videoId} is already being processed.`);
+        }
       }
     } catch (error) {
       console.error("Error processing queue: ", error);
