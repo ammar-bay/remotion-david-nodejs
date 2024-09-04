@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { downloadWhisperModel, installWhisperCpp } from "@remotion/install-whisper-cpp";
 import bodyParser from "body-parser";
 import cors from "cors";
