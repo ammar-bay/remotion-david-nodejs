@@ -43,7 +43,7 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Render completed and entry removed" });
 
     // Check and process the queue after render completion
-    await checkAndProcessQueue();
+    await processRequestPipeline(req.body);
   } catch (error) {
     console.error("Error handling render completion: ", error);
     res.status(500).json({ message: "Internal server error" });

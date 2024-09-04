@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, pendingJobs, processQueue } from "./utils";
+import { connectToDatabase, pendingJobs } from "./utils";
 import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
@@ -72,7 +72,7 @@ app.post("/webhook", handleRenderCompletion, async (req: Request, res: Response)
   console.log("Response sent to webhook caller.");
 
   console.log("Starting to process the next message in the queue.");
-  await processQueue();
+  await processRequestPipeline(req.body);
   console.log("Finished processing the next message in the queue.");
 });
 

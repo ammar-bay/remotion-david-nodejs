@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
-import { generateCaptions, generateVideo, logToCloudWatch } from './utils';
+import { generateCaptions, logToCloudWatch } from './utils';
+import { processRequestPipeline } from './pipeline';
 import retry from 'retry';
 import { RequestBody } from './types';
 import { connectToDatabase } from './utils';
@@ -89,10 +90,7 @@ const processMessage = async (body: RequestBody) => {
       scenes = await generateCaptions(body.scenes);
     }
 
-    await generateVideo({
-      ...body,
-      scenes,
-    });
+    await processRequestPipeline(body);
   } catch (error) {
     console.error("Error occurred while processing message: ", error);
   } finally {
