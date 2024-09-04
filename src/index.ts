@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, pendingJobs, processQueue } from "./utils";
+import { connectToDatabase, pendingJobs, processMessageWithRetry } from "./utils";
 import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
