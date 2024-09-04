@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import { processQueue } from "./index";
 import { convertToCaptions, transcribe } from "@remotion/install-whisper-cpp";
 import {
   RenderMediaOnLambdaInput,
@@ -30,9 +31,8 @@ export const checkAndProcessQueue = async () => {
 
   if (ongoingRenders < CONCURRENCY_LIMIT) {
     console.log("Processing the next message in the queue.");
-    // Ensure processQueue is defined or imported correctly
-    // If processQueue is defined elsewhere, import it here
-    // If not, define it here
+    // Call processQueue to handle the next message
+    await processQueue();
   } else {
     console.log("Concurrency limit reached, waiting for a slot...");
     // Wait and then check again
