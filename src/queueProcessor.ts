@@ -24,12 +24,6 @@ const processQueue = async () => {
   };
 
   while (true) {
-    if (pendingJobs.size > 0) {
-      // Wait for pending jobs to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      continue;
-    }
-
     try {
       const data = await sqs.receiveMessage(params).promise();
       if (data.Messages && data.Messages.length > 0) {
