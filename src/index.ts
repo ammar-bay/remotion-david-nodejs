@@ -54,7 +54,9 @@ app.post(
     try {
       await processRequestPipeline(body);
       res.status(200).send("Video generation request processed");
+      console.log(`No messages received. Current backoff delay: ${backoffDelay / 1000} seconds.`);
     } catch (error) {
+      console.error("Error processing queue: ", error);
       console.error("Error sending message to SQS: ", error);
       res.status(500).send("Error queuing request");
     }
@@ -80,6 +82,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send("Something broke!");
 });
 
+let isProcessingQueue = false;
+
 const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
 
@@ -96,8 +100,11 @@ const server = app.listen(PORT, async () => {
     console.log("Concurrency limit reached on startup, will not start processing immediately.");
   }
 
-  // Start processing the queue
-  processQueue();
+  // Start processing the queue if not already running
+  if (!isProcessingQueue) {
+    isProcessingQueue = true;
+    processQueue();
+  }
 
   //   await installWhisperCpp({
   //     to: path.join(process.cwd(), "whisper.cpp"),
@@ -138,7 +145,9 @@ export const processQueue = async () => {
     WaitTimeSeconds: 20,
   };
 
+  console.log("Starting processQueue loop");
   while (true) {
+    console.log("Checking for messages in the queue...");
 
     try {
       await logQueueAttributes();
