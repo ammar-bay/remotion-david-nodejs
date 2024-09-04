@@ -41,8 +41,6 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
     }
 
     console.log(`Entry for videoId: ${videoId} removed from MongoDB`);
-    // Check and process the queue after render completion
-    await checkAndProcessQueue();
 
     res.status(200).json({ message: "Render completed and entry removed" });
 
