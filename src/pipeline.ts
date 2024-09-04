@@ -1,5 +1,4 @@
 import { RequestBody } from "./types";
-import { RequestBody } from "./types";
 import { generateVideo } from "./utils";
 import { connectToDatabase } from "./utils";
 
