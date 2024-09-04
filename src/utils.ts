@@ -149,23 +149,28 @@ export async function generateVideo(
   // save inputProps to a file
   // fs.writeFileSync("inputProps.json", JSON.stringify(inputProps, null, 2));
 
-  const { bucketName, renderId } = await renderMediaOnLambda({
-    region:
-      (process.env
-        .REMOTION_LAMBDA_REGION as RenderMediaOnLambdaInput["region"]) ||
-      "us-east-1",
-    composition,
-    serveUrl: process.env.REMOTION_SERVE_URL || "",
-    webhook,
-    inputProps,
-    codec: "h264",
-    functionName: process.env.REMOTION_LAMBDA_FUNCTION_NAME || "",
-    outName: inputProps.videoId + ".mp4",
-  });
-  console.log("Video rendering started");
-  console.log("Bucket name: ", bucketName);
-  console.log("Render ID: ", renderId);
-  return { bucketName, renderId };
+  try {
+    const { bucketName, renderId } = await renderMediaOnLambda({
+      region:
+        (process.env
+          .REMOTION_LAMBDA_REGION as RenderMediaOnLambdaInput["region"]) ||
+        "us-east-1",
+      composition,
+      serveUrl: process.env.REMOTION_SERVE_URL || "",
+      webhook,
+      inputProps,
+      codec: "h264",
+      functionName: process.env.REMOTION_LAMBDA_FUNCTION_NAME || "",
+      outName: inputProps.videoId + ".mp4",
+    });
+    console.log("Video rendering started");
+    console.log("Bucket name: ", bucketName);
+    console.log("Render ID: ", renderId);
+    return { bucketName, renderId };
+  } catch (error) {
+    console.error("Error during video rendering: ", error);
+    return undefined;
+  }
 }
 
 const getFileExtension = (url: string): string => {

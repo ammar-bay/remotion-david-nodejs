@@ -52,6 +52,7 @@ app.post(
 
     try {
       await sqs.sendMessage(params).promise();
+      console.log(`Message sent to SQS for videoId: ${body.videoId}`);
       res.status(200).send("Video generation request queued");
     } catch (error) {
       console.error("Error sending message to SQS: ", error);
