@@ -141,14 +141,18 @@ const processQueue = async () => {
 
           console.log(`Processing message from SQS for videoId: ${body.videoId}`);
 
-          // Process the message
-          await processRequestPipeline(body);
+          try {
+            // Process the message
+            await processRequestPipeline(body);
 
-          // Delete the message from the queue
-          await sqs.deleteMessage({
-            QueueUrl: queueUrl,
-            ReceiptHandle: message.ReceiptHandle!,
-          }).promise();
+            // Delete the message from the queue
+            await sqs.deleteMessage({
+              QueueUrl: queueUrl,
+              ReceiptHandle: message.ReceiptHandle!,
+            }).promise();
+          } catch (error) {
+            console.error(`Error processing message for videoId: ${body.videoId}`, error);
+          }
         } else {
           console.log(`Job with videoId: ${body.videoId} is already being processed.`);
         }

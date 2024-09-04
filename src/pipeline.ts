@@ -19,8 +19,6 @@ export const processRequestPipeline = async (body: RequestBody) => {
     } else {
       console.error(`Failed to send message to SQS for videoId: ${body.videoId}`);
     }
-
-    console.log(`Message sent to SQS for videoId: ${body.videoId}`);
   } catch (error) {
     console.error("Error in request pipeline: ", error);
     throw error;
