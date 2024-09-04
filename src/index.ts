@@ -7,7 +7,11 @@ import path from "path";
 import AWS from "aws-sdk";
 import validateScene from "./middleware";
 
-const sqs = new AWS.SQS({ region: process.env.SQS_AWS_DEFAULT_REGION });
+const sqs = new AWS.SQS({
+  region: process.env.AWS_DEFAULT_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
 import { RequestBody, Scene } from "./types";
 import { generateCaptions, generateVideo } from "./utils";
 import axios from "axios";
