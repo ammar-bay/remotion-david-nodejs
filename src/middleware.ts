@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { requestBodySchema } from "./types";
+import { connectToDatabase } from './utils'; // Import the MongoDB connection utility
 
 // Middleware to validate the request body using Zod and apply default values
 const validateScene = (req: Request, res: Response, next: NextFunction) => {
@@ -20,4 +21,22 @@ const validateScene = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export default validateScene;
+// Webhook endpoint to handle render completion
+const handleRenderCompletion = async (req: Request, res: Response) => {
+  const { videoId } = req.body;
+
+  try {
+    const db = await connectToDatabase();
+    const collection = db.collection('promotion_video_render');
+
+    // Remove entry from MongoDB
+    await collection.deleteOne({ videoId });
+
+    res.status(200).json({ message: "Render completed and entry removed" });
+  } catch (error) {
+    console.error("Error handling render completion: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { validateScene, handleRenderCompletion };

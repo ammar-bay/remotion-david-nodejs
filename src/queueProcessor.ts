@@ -2,6 +2,7 @@ import AWS from 'aws-sdk';
 import { generateCaptions, generateVideo, logToCloudWatch } from './utils';
 import retry from 'retry';
 import { RequestBody } from './types';
+import { connectToDatabase } from './utils'; // Import the MongoDB connection utility
 
 const sqs = new AWS.SQS({
   region: process.env.AWS_DEFAULT_REGION,
@@ -10,6 +11,7 @@ const sqs = new AWS.SQS({
 });
 
 const pendingJobs = new Set<string>();
+const CONCURRENCY_LIMIT = 2; // Set your concurrency limit here
 
 const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
@@ -29,17 +31,29 @@ const processQueue = async () => {
       const message = data.Messages[0];
       const body: RequestBody = JSON.parse(message.Body || '{}');
 
-      // Add job to pending
-      pendingJobs.add(body.videoId);
+      // Check MongoDB for concurrency limit
+      const db = await connectToDatabase();
+      const collection = db.collection('promotion_video_render');
+      const ongoingRenders = await collection.countDocuments();
 
-      // Process the message
-      await processMessageWithRetry(body);
+      if (ongoingRenders < CONCURRENCY_LIMIT) {
+        // Add job to pending
+        pendingJobs.add(body.videoId);
 
-      // Delete the message from the queue
-      await sqs.deleteMessage({
-        QueueUrl: queueUrl,
-        ReceiptHandle: message.ReceiptHandle!,
-      }).promise();
+        // Insert a new entry in MongoDB
+        await collection.insertOne({ videoId: body.videoId, status: 'ongoing', timestamp: new Date() });
+
+        // Process the message
+        await processMessageWithRetry(body);
+
+        // Delete the message from the queue
+        await sqs.deleteMessage({
+          QueueUrl: queueUrl,
+          ReceiptHandle: message.ReceiptHandle!,
+        }).promise();
+      } else {
+        console.log("Concurrency limit reached, waiting for a slot...");
+      }
     }
   } catch (error: any) {
     console.error("Error processing queue: ", error);
