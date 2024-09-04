@@ -41,6 +41,11 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
 
     console.log(`Entry for videoId: ${videoId} removed from MongoDB`);
     res.status(200).json({ message: "Render completed and entry removed" });
+
+    // Start processing the next message in the queue
+    console.log("Starting to process the next message in the queue.");
+    await processQueue();
+    console.log("Finished processing the next message in the queue.");
   } catch (error) {
     console.error("Error handling render completion: ", error);
     res.status(500).json({ message: "Internal server error" });
