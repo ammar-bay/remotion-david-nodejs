@@ -129,6 +129,9 @@ export const processQueue = async () => {
     }
   };
 
+  let backoffDelay = 5000; // Start with a 5-second delay
+  const maxBackoffDelay = 30000; // Maximum backoff delay of 30 seconds
+
   const params = {
     QueueUrl: queueUrl,
     MaxNumberOfMessages: 1,
@@ -157,10 +160,20 @@ export const processQueue = async () => {
             QueueUrl: queueUrl,
             ReceiptHandle: message.ReceiptHandle!,
           }).promise();
+          // Reset backoff delay after successful processing
+          backoffDelay = 5000;
         } catch (error) {
+          // If processing fails, increase the backoff delay
+          backoffDelay = Math.min(backoffDelay * 2, maxBackoffDelay);
+          console.error(`Error processing message for videoId: ${body.videoId}`, error);
+          console.log(`Increasing backoff delay to ${backoffDelay / 1000} seconds.`);
           console.error(`Error processing message for videoId: ${body.videoId}`, error);
         }
-      }
+      } else {
+        // If no messages are received, increase the backoff delay
+        backoffDelay = Math.min(backoffDelay * 2, maxBackoffDelay);
+        console.log(`No messages received. Increasing backoff delay to ${backoffDelay / 1000} seconds.`);
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
     } catch (error) {
       console.error("Error processing queue: ", error);
     }
