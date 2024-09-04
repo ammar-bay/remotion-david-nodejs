@@ -68,7 +68,8 @@ export const processQueue = async () => {
         pendingJobs.add(body.videoId);
 
         // Process the message
-        await processRequestPipeline(body);
+        // Process the message
+        await processMessageWithRetry(body);
 
         // Delete the message from the queue
         await sqs.deleteMessage({

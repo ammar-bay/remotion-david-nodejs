@@ -17,8 +17,7 @@ export const processRequestPipeline = async (body: RequestBody) => {
     await sqs.sendMessage(params).promise();
     console.log(`Message sent to SQS for videoId: ${body.videoId}`);
 
-    // Process the message
-    await processMessageWithRetry(body);
+    console.log(`Message sent to SQS for videoId: ${body.videoId}`);
   } catch (error) {
     console.error("Error in request pipeline: ", error);
     throw error;
