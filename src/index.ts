@@ -7,7 +7,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import path from "path";
+import AWS from "aws-sdk";
 import validateScene from "./middleware";
+
+const sqs = new AWS.SQS({ region: process.env.SQS_AWS_DEFAULT_REGION });
 import { RequestBody, Scene } from "./types";
 import { generateCaptions, generateVideo } from "./utils";
 import axios from "axios";
@@ -35,27 +38,17 @@ app.post(
       return res.status(400).send("No scenes provided");
     }
 
-    res.status(200).send("Video generation request queued");
-
-    let scenes: Scene[] = [];
+    const params = {
+      QueueUrl: process.env.SQS_QUEUE_URL,
+      MessageBody: JSON.stringify(body),
+    };
 
     try {
-      if (body.caption) scenes = await generateCaptions(body.scenes);
-      else scenes = body.scenes;
-
-      await generateVideo({
-        ...body,
-        scenes,
-      });
-    } catch (error: any) {
-      console.error("Error occurred while generating the video: ", error);
-      await axios.post(process.env.REMOTION_WEBHOOK_URL || "", {
-        type: "error",
-        errors: {
-          message:
-            "Error occurred while downloading the audio: " + error.message,
-        },
-      });
+      await sqs.sendMessage(params).promise();
+      res.status(200).send("Video generation request queued");
+    } catch (error) {
+      console.error("Error sending message to SQS: ", error);
+      res.status(500).send("Error queuing request");
     }
   }
 );
