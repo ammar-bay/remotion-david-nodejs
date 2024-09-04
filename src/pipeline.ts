@@ -1,5 +1,4 @@
 import { RequestBody } from "./types";
-import { processMessageWithRetry } from "./queueProcessor";
 import { sqs } from "./utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
