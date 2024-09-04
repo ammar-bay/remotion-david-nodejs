@@ -113,7 +113,7 @@ const server = app.listen(PORT, async () => {
 });
 
 server.setTimeout(600000);
-const processQueue = async () => {
+export const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
   if (!queueUrl) {
     throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
