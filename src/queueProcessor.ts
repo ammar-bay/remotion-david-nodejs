@@ -11,7 +11,7 @@ const sqs = new AWS.SQS({
 });
 
 const pendingJobs = new Set<string>();
-const CONCURRENCY_LIMIT = 2; // Set your concurrency limit here
+const CONCURRENCY_LIMIT = 1; // Set your concurrency limit here
 
 const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
