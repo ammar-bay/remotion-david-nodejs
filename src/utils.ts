@@ -174,7 +174,7 @@ export async function generateVideo(
     } catch (error: any) {
       if (error.name === 'TooManyRequestsException' && attempt < maxRetries - 1) {
         console.warn(`TooManyRequestsException encountered. Retrying attempt ${attempt + 1}...`);
-        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.max(10000, 2000 * (attempt + 1)))); // Ensure at least 10 seconds wait
         attempt++;
       } else {
         console.error("Error during video rendering: ", error);
