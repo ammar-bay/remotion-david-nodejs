@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { generateCaptions, generateVideo, pendingJobs, processQueue } from "./utils";
+import { connectToDatabase, generateCaptions, generateVideo, pendingJobs, processQueue } from "./utils";
 import axios from "axios";
 
 dotenv.config();
