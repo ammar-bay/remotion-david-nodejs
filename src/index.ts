@@ -81,7 +81,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send("Something broke!");
 });
 
-let isProcessingQueue = false;
+export let isProcessingQueue = false;
 
 const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
@@ -105,6 +105,10 @@ const server = app.listen(PORT, async () => {
 });
 
 server.setTimeout(600000);
+export const setIsProcessingQueue = (value: boolean) => {
+  isProcessingQueue = value;
+};
+
 export const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
   if (!queueUrl) {
