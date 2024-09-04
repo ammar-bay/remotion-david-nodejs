@@ -44,7 +44,7 @@ const processQueue = async () => {
 
 const processMessageWithRetry = async (body: RequestBody) => {
   await pRetry(() => processMessage(body), {
-    onFailedAttempt: error => {
+    onFailedAttempt: (error: any) => {
       logToCloudWatch(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
     },
     retries: 5
