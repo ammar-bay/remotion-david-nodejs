@@ -54,7 +54,6 @@ app.post(
     try {
       await processRequestPipeline(body);
       res.status(200).send("Video generation request processed");
-      console.log(`No messages received. Current backoff delay: ${backoffDelay / 1000} seconds.`);
     } catch (error) {
       console.error("Error processing queue: ", error);
       console.error("Error sending message to SQS: ", error);

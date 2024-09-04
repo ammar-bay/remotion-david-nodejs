@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { processQueue } from "./index";
+import { processQueue, isProcessingQueue } from "./index";
 import { convertToCaptions, transcribe } from "@remotion/install-whisper-cpp";
 import {
   RenderMediaOnLambdaInput,
