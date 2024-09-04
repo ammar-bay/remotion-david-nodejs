@@ -3,7 +3,8 @@
     "start": "npm run build && node build/index.js",
     "dev": "nodemon --watch src --exec ts-node src/index.ts",
     "build": "tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "process-queue": "node build/queueProcessor.js"
   },
   "dependencies": {
     "@remotion/install-whisper-cpp": "4.0.143",
