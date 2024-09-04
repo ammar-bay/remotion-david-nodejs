@@ -21,7 +21,6 @@ const validateScene = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-// Webhook endpoint to handle render completion
 const handleRenderCompletion = async (req: Request, res: Response) => {
   const { videoId } = req.body;
 
@@ -30,7 +29,12 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
     const collection = db.collection('promotion_video_render');
 
     // Remove entry from MongoDB
-    await collection.deleteOne({ videoId });
+    const result = await collection.deleteOne({ videoId });
+
+    if (result.deletedCount === 0) {
+      console.warn(`No entry found for videoId: ${videoId}`);
+      return res.status(404).json({ message: "No entry found for the given videoId" });
+    }
 
     res.status(200).json({ message: "Render completed and entry removed" });
   } catch (error) {
