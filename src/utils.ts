@@ -164,8 +164,8 @@ const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.env.SQS_AWS_DEFA
 
 export const logToCloudWatch = async (message: string) => {
   const params = {
-    logGroupName: 'YourLogGroupName',
-    logStreamName: 'YourLogStreamName',
+    logGroupName: 'lambdaremotionlogs',
+    logStreamName: 'lambdaremotionlogs',
     logEvents: [
       {
         message,
