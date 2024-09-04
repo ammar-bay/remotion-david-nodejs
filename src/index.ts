@@ -95,6 +95,7 @@ const server = app.listen(PORT, async () => {
 
   // Start processing the queues
   processCaptionQueue();
+  console.log("Starting normal queue processing");
   processQueue();
 
   //   await installWhisperCpp({
