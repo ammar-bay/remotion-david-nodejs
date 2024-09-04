@@ -1,6 +1,5 @@
 import { MongoClient } from "mongodb";
-import { processQueue, isProcessingQueue } from "./index";
-import { setIsProcessingQueue } from "./index";
+import { processQueue } from "./index";
 import { convertToCaptions, transcribe } from "@remotion/install-whisper-cpp";
 import {
   RenderMediaOnLambdaInput,
@@ -29,13 +28,12 @@ export const checkAndProcessQueue = async () => {
   const ongoingRenders = await collection.countDocuments();
   console.log(`Current ongoing renders: ${ongoingRenders}`);
 
-  if (ongoingRenders < CONCURRENCY_LIMIT && !isProcessingQueue) {
+  if (ongoingRenders < CONCURRENCY_LIMIT) {
     console.log("Processing the next message in the queue.");
     // Call processQueue to handle the next message
-    setIsProcessingQueue(true);
     processQueue();
   } else {
-    console.log("Concurrency limit reached or already processing, waiting for a slot...");
+    console.log("Concurrency limit reached, waiting for a slot...");
     // Wait and then check again
     setTimeout(checkAndProcessQueue, 5000);
   }

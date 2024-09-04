@@ -81,17 +81,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send("Something broke!");
 });
 
-export let isProcessingQueue = false;
+let isProcessingQueue = false;
 
 const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
 
-  // Start processing the queue on server startup if not already running
-  if (!isProcessingQueue) {
-    isProcessingQueue = true;
-    console.log("Starting to process the queue on server startup.");
-    await checkAndProcessQueue();
-  }
+  // Start processing the queue
+  processQueue();
 
   //   await installWhisperCpp({
   //     to: path.join(process.cwd(), "whisper.cpp"),
@@ -105,10 +101,6 @@ const server = app.listen(PORT, async () => {
 });
 
 server.setTimeout(600000);
-export const setIsProcessingQueue = (value: boolean) => {
-  isProcessingQueue = value;
-};
-
 export const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
   if (!queueUrl) {
