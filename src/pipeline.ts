@@ -1,4 +1,5 @@
 import { RequestBody } from "./types";
+import { sqs } from "./utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
   const queueUrl = process.env.SQS_QUEUE_URL;
