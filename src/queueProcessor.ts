@@ -59,7 +59,7 @@ const processMessageWithRetry = async (body: RequestBody) => {
     retries: 5,
     factor: 2,
     minTimeout: 1000,
-    maxTimeout: 5000,
+    maxTimeout: 150000, // 150 seconds
   });
 
   operation.attempt(async (currentAttempt) => {
