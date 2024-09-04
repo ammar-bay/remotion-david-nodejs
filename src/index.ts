@@ -6,7 +6,7 @@ import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import AWS from "aws-sdk";
-import { validateScene } from "./middleware";
+import { validateScene, handleRenderCompletion } from "./middleware";
 
 const sqs = new AWS.SQS({
   region: process.env.AWS_DEFAULT_REGION,
@@ -61,7 +61,7 @@ app.post(
   }
 );
 
-app.post("/webhook", async (req: Request, res: Response) => {
+app.post("/webhook", handleRenderCompletion, async (req: Request, res: Response) => {
   console.log("Webhook endpoint called with data: ", req.body);
   const { videoId } = req.body;
 

@@ -22,6 +22,7 @@ const validateScene = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const handleRenderCompletion = async (req: Request, res: Response) => {
+  console.log("handleRenderCompletion called with videoId: ", req.body.videoId);
   const { videoId } = req.body;
 
   try {
