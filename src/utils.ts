@@ -21,7 +21,21 @@ const sqs = new AWS.SQS({
 
 export const pendingJobs = new Set<string>();
 
-export const processQueue = async () => {
+export const checkAndProcessQueue = async () => {
+  const db = await connectToDatabase();
+  const collection = db.collection('promotion_video_render');
+  const ongoingRenders = await collection.countDocuments();
+  console.log(`Current ongoing renders: ${ongoingRenders}`);
+
+  if (ongoingRenders < CONCURRENCY_LIMIT) {
+    console.log("Processing the next message in the queue.");
+    await processQueue();
+  } else {
+    console.log("Concurrency limit reached, waiting for a slot...");
+  }
+}
+
+const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
   if (!queueUrl) {
     throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
