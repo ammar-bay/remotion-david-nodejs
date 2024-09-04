@@ -8,7 +8,6 @@ import { execSync } from "child_process";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
-import AWS from 'aws-sdk';
 import { RequestBody, Scene } from "./types";
 import { processMessageWithRetry } from './queueProcessor';
 import AWS from 'aws-sdk';

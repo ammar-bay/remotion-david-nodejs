@@ -54,7 +54,7 @@ const processQueue = async () => {
   }
 }
 
-const processMessageWithRetry = async (body: RequestBody) => {
+export const processMessageWithRetry = async (body: RequestBody) => {
   const operation = retry.operation({
     retries: 5,
     factor: 2,
