@@ -20,7 +20,7 @@ export const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-const CONCURRENCY_LIMIT = 1; // Set your concurrency limit here
+const CAPTION_CONCURRENCY_LIMIT = 1; // Set your caption concurrency limit here
 
 export const checkAndProcessQueue = async () => {
   const db = await connectToDatabase();
@@ -36,6 +36,77 @@ export const checkAndProcessQueue = async () => {
     console.log("Concurrency limit reached, waiting for a slot...");
     // Wait and then check again
     setTimeout(checkAndProcessQueue, 5000);
+  }
+}
+
+export const processCaptionQueue = async () => {
+  const captionQueueUrl = process.env.SQS_CAPTION_QUEUE_URL;
+  if (!captionQueueUrl) {
+    throw new Error("SQS_CAPTION_QUEUE_URL is not defined in the environment variables");
+  }
+
+  const db = await connectToDatabase();
+  const collection = db.collection('caption_generation');
+
+  const params = {
+    QueueUrl: captionQueueUrl,
+    MaxNumberOfMessages: 1,
+    WaitTimeSeconds: 20,
+  };
+
+  console.log("Starting processCaptionQueue loop");
+  while (true) {
+    console.log("Checking for messages in the caption queue...");
+
+    try {
+      const ongoingCaptions = await collection.countDocuments();
+      if (ongoingCaptions >= CAPTION_CONCURRENCY_LIMIT) {
+        console.log("Caption concurrency limit reached, waiting for a slot...");
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        continue;
+      }
+
+      const data = await sqs.receiveMessage(params).promise();
+      if (data.Messages && data.Messages.length > 0) {
+        const message = data.Messages[0];
+        const body: RequestBody = JSON.parse(message.Body || '{}');
+        console.log(`Processing caption for videoId: ${body.videoId}`);
+
+        // Insert the message into MongoDB
+        await collection.insertOne({ videoId: body.videoId, status: 'captioning' });
+
+        try {
+          // Generate captions
+          const scenesWithCaptions = await generateCaptions(body.scenes);
+          body.scenes = scenesWithCaptions;
+
+          // Remove the document from MongoDB
+          await collection.deleteOne({ videoId: body.videoId });
+
+          // Send the updated request to the Lambda queue
+          const lambdaQueueUrl = process.env.SQS_QUEUE_URL;
+          const params = {
+            QueueUrl: lambdaQueueUrl,
+            MessageBody: JSON.stringify(body),
+          };
+          await sqs.sendMessage(params).promise();
+          console.log(`Request for videoId: ${body.videoId} sent to Lambda SQS for processing.`);
+
+          // Delete the message from the caption queue
+          await sqs.deleteMessage({
+            QueueUrl: captionQueueUrl,
+            ReceiptHandle: message.ReceiptHandle!,
+          }).promise();
+        } catch (error) {
+          console.error(`Error processing caption for videoId: ${body.videoId}`, error);
+        }
+      } else {
+        console.log("No messages received in the caption queue.");
+        await new Promise(resolve => setTimeout(resolve, 60000)); // Wait for 1 minute before checking again
+      }
+    } catch (error) {
+      console.error("Error processing caption queue: ", error);
+    }
   }
 }
 

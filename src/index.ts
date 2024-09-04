@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, checkAndProcessQueue } from "./utils";
+import { connectToDatabase, checkAndProcessQueue, processCaptionQueue } from "./utils";
 import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
@@ -41,23 +41,30 @@ app.post(
       return res.status(400).send("No scenes provided");
     }
 
-    const queueUrl = process.env.SQS_QUEUE_URL;
-    if (!queueUrl) {
-      return res.status(500).send("SQS_QUEUE_URL is not defined in the environment variables");
+    const captionQueueUrl = process.env.SQS_CAPTION_QUEUE_URL;
+    const lambdaQueueUrl = process.env.SQS_QUEUE_URL;
+
+    if (!captionQueueUrl || !lambdaQueueUrl) {
+      return res.status(500).send("SQS_QUEUE_URLs are not defined in the environment variables");
     }
 
-    const params = {
-      QueueUrl: queueUrl,
-      MessageBody: JSON.stringify(body),
-    };
-
     try {
-      await processRequestPipeline(body);
+      if (body.caption) {
+        // Send to caption queue
+        const params = {
+          QueueUrl: captionQueueUrl,
+          MessageBody: JSON.stringify(body),
+        };
+        await sqs.sendMessage(params).promise();
+        console.log(`Request for videoId: ${body.videoId} sent to Caption SQS for processing.`);
+      } else {
+        // Directly process the request for Lambda
+        await processRequestPipeline(body);
+      }
       res.status(200).send("Video generation request processed");
     } catch (error) {
-      console.error("Error processing queue: ", error);
-      console.error("Error sending message to SQS: ", error);
-      res.status(500).send("Error queuing request");
+      console.error("Error processing request: ", error);
+      res.status(500).send("Error processing request");
     }
   }
 );
@@ -86,7 +93,8 @@ let isProcessingQueue = false;
 const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
 
-  // Start processing the queue
+  // Start processing the queues
+  processCaptionQueue();
   processQueue();
 
   //   await installWhisperCpp({
