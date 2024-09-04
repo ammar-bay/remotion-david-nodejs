@@ -14,7 +14,8 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, generateCaptions, generateVideo, pendingJobs, processQueue, checkAndProcessQueue } from "./utils";
+import { connectToDatabase, pendingJobs, processQueue } from "./utils";
+import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
 dotenv.config();
@@ -51,12 +52,8 @@ app.post(
     };
 
     try {
-      await sqs.sendMessage(params).promise();
-      console.log(`Message sent to SQS for videoId: ${body.videoId}`);
-      res.status(200).send("Video generation request queued");
-      
-      // Check and process the queue after sending a message
-      await checkAndProcessQueue();
+      await processRequestPipeline(body);
+      res.status(200).send("Video generation request processed");
     } catch (error) {
       console.error("Error sending message to SQS: ", error);
       res.status(500).send("Error queuing request");

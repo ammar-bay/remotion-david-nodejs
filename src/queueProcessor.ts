@@ -4,11 +4,7 @@ import retry from 'retry';
 import { RequestBody } from './types';
 import { connectToDatabase } from './utils';
 
-const sqs = new AWS.SQS({
-  region: process.env.AWS_DEFAULT_REGION,
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-});
+import { sqs } from './utils';
 
 const pendingJobs = new Set<string>();
 const CONCURRENCY_LIMIT = 1; // Set your concurrency limit here
