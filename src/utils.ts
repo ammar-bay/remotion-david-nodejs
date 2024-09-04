@@ -36,7 +36,7 @@ export const checkAndProcessQueue = async () => {
   }
 }
 
-const processQueue = async () => {
+export const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
   if (!queueUrl) {
     throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
