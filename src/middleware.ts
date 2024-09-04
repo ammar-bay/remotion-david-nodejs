@@ -36,6 +36,7 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "No entry found for the given videoId" });
     }
 
+    console.log(`Entry for videoId: ${videoId} removed from MongoDB`);
     res.status(200).json({ message: "Render completed and entry removed" });
   } catch (error) {
     console.error("Error handling render completion: ", error);
