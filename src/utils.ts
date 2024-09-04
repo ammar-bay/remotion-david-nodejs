@@ -11,6 +11,7 @@ import fs from "fs";
 import path from "path";
 import { RequestBody, Scene } from "./types";
 import { processMessageWithRetry } from './queueProcessor';
+import { processRequestPipeline } from './pipeline';
 import AWS from 'aws-sdk';
 
 export const sqs = new AWS.SQS({

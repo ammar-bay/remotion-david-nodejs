@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { requestBodySchema } from "./types";
 import { connectToDatabase, checkAndProcessQueue } from './utils';
+import { processRequestPipeline } from './pipeline';
 
 // Middleware to validate the request body using Zod and apply default values
 const validateScene = (req: Request, res: Response, next: NextFunction) => {
