@@ -65,13 +65,15 @@ app.post("/webhook", async (req: Request, res: Response) => {
   console.log("Webhook endpoint called with data: ", req.body);
   const { videoId } = req.body;
 
-  // Remove job from pending
+  console.log(`Removing job with videoId: ${videoId} from pending jobs.`);
   pendingJobs.delete(videoId);
 
   res.status(200).send("Webhook received");
+  console.log("Response sent to webhook caller.");
 
-  // Process next message only after the current one is completed
+  console.log("Starting to process the next message in the queue.");
   await processQueue();
+  console.log("Finished processing the next message in the queue.");
 });
 
 // Error handling middleware
