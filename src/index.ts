@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, pendingJobs, processMessageWithRetry } from "./utils";
+import { connectToDatabase, pendingJobs } from "./utils";
 import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
@@ -110,3 +110,45 @@ const server = app.listen(PORT, async () => {
 });
 
 server.setTimeout(600000);
+const processQueue = async () => {
+  const queueUrl = process.env.SQS_QUEUE_URL;
+  if (!queueUrl) {
+    throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
+  }
+
+  const params = {
+    QueueUrl: queueUrl,
+    MaxNumberOfMessages: 1,
+    WaitTimeSeconds: 20,
+  };
+
+  while (true) {
+    if (pendingJobs.size > 0) {
+      // Wait for pending jobs to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      continue;
+    }
+
+    try {
+      const data = await sqs.receiveMessage(params).promise();
+      if (data.Messages && data.Messages.length > 0) {
+        const message = data.Messages[0];
+        const body: RequestBody = JSON.parse(message.Body || '{}');
+
+        // Add job to pending
+        pendingJobs.add(body.videoId);
+
+        // Process the message
+        await processRequestPipeline(body);
+
+        // Delete the message from the queue
+        await sqs.deleteMessage({
+          QueueUrl: queueUrl,
+          ReceiptHandle: message.ReceiptHandle!,
+        }).promise();
+      }
+    } catch (error) {
+      console.error("Error processing queue: ", error);
+    }
+  }
+}
