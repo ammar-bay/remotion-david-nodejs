@@ -32,7 +32,7 @@ export const checkAndProcessQueue = async () => {
   if (ongoingRenders < CONCURRENCY_LIMIT) {
     console.log("Processing the next message in the queue.");
     // Call processQueue to handle the next message
-    await processQueue();
+    processQueue();
   } else {
     console.log("Concurrency limit reached, waiting for a slot...");
     // Wait and then check again
