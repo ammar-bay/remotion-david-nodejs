@@ -149,27 +149,38 @@ export async function generateVideo(
   // save inputProps to a file
   // fs.writeFileSync("inputProps.json", JSON.stringify(inputProps, null, 2));
 
-  try {
-    const { bucketName, renderId } = await renderMediaOnLambda({
-      region:
-        (process.env
-          .REMOTION_LAMBDA_REGION as RenderMediaOnLambdaInput["region"]) ||
-        "us-east-1",
-      composition,
-      serveUrl: process.env.REMOTION_SERVE_URL || "",
-      webhook,
-      inputProps,
-      codec: "h264",
-      functionName: process.env.REMOTION_LAMBDA_FUNCTION_NAME || "",
-      outName: inputProps.videoId + ".mp4",
-    });
-    console.log("Video rendering started");
-    console.log("Bucket name: ", bucketName);
-    console.log("Render ID: ", renderId);
-    return { bucketName, renderId };
-  } catch (error) {
-    console.error("Error during video rendering: ", error);
-    return undefined;
+  const maxRetries = 5;
+  let attempt = 0;
+
+  while (attempt < maxRetries) {
+    try {
+      const { bucketName, renderId } = await renderMediaOnLambda({
+        region:
+          (process.env
+            .REMOTION_LAMBDA_REGION as RenderMediaOnLambdaInput["region"]) ||
+          "us-east-1",
+        composition,
+        serveUrl: process.env.REMOTION_SERVE_URL || "",
+        webhook,
+        inputProps,
+        codec: "h264",
+        functionName: process.env.REMOTION_LAMBDA_FUNCTION_NAME || "",
+        outName: inputProps.videoId + ".mp4",
+      });
+      console.log("Video rendering started");
+      console.log("Bucket name: ", bucketName);
+      console.log("Render ID: ", renderId);
+      return { bucketName, renderId };
+    } catch (error: any) {
+      if (error.name === 'TooManyRequestsException' && attempt < maxRetries - 1) {
+        console.warn(`TooManyRequestsException encountered. Retrying attempt ${attempt + 1}...`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Exponential backoff
+        attempt++;
+      } else {
+        console.error("Error during video rendering: ", error);
+        return undefined;
+      }
+    }
   }
 }
 
