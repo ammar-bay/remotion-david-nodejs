@@ -54,6 +54,19 @@ app.post(
       await sqs.sendMessage(params).promise();
       console.log(`Message sent to SQS for videoId: ${body.videoId}`);
       res.status(200).send("Video generation request queued");
+      
+      // Immediately check MongoDB and start processing if possible
+      const db = await connectToDatabase();
+      const collection = db.collection('promotion_video_render');
+      const ongoingRenders = await collection.countDocuments();
+      console.log(`Current ongoing renders after sending message: ${ongoingRenders}`);
+
+      if (ongoingRenders < 1) { // Assuming concurrency limit is 1
+        console.log("Starting to process the queue immediately after sending message.");
+        await processQueue();
+      } else {
+        console.log("Concurrency limit reached, will not start processing immediately.");
+      }
     } catch (error) {
       console.error("Error sending message to SQS: ", error);
       res.status(500).send("Error queuing request");
