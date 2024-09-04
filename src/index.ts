@@ -1,4 +1,3 @@
-import { hello } from "./hello";
 import { downloadWhisperModel, installWhisperCpp } from "@remotion/install-whisper-cpp";
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -36,8 +35,13 @@ app.post(
       return res.status(400).send("No scenes provided");
     }
 
+    const queueUrl = process.env.SQS_QUEUE_URL;
+    if (!queueUrl) {
+      return res.status(500).send("SQS_QUEUE_URL is not defined in the environment variables");
+    }
+
     const params = {
-      QueueUrl: process.env.SQS_QUEUE_URL,
+      QueueUrl: queueUrl,
       MessageBody: JSON.stringify(body),
     };
 
