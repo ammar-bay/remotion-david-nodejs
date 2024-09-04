@@ -87,22 +87,10 @@ let isProcessingQueue = false;
 const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
 
-  // Check MongoDB and start processing the queue on server startup
-  const db = await connectToDatabase();
-  const collection = db.collection('promotion_video_render');
-  const ongoingRenders = await collection.countDocuments();
-  console.log(`Current ongoing renders on server startup: ${ongoingRenders}`);
-
-  if (ongoingRenders < 1) { // Assuming concurrency limit is 1
-    console.log("Starting to process the queue on server startup.");
-    await checkAndProcessQueue();
-  } else {
-    console.log("Concurrency limit reached on startup, will not start processing immediately.");
-  }
-
   // Start processing the queue on server startup if not already running
   if (!isProcessingQueue) {
     isProcessingQueue = true;
+    console.log("Starting to process the queue on server startup.");
     await checkAndProcessQueue();
   }
 
