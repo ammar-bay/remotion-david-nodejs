@@ -57,6 +57,5 @@ const processMessageWithRetry = async (body: RequestBody) => {
     console.error("Error occurred while processing message: ", error);
   }
 };
-};
 
 processQueue();
