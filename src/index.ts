@@ -138,6 +138,8 @@ const processQueue = async () => {
         // Add job to pending
         pendingJobs.add(body.videoId);
 
+        console.log(`Processing message from SQS for videoId: ${body.videoId}`);
+
         // Process the message
         await processRequestPipeline(body);
 
