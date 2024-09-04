@@ -1,9 +1,12 @@
 import AWS from 'aws-sdk';
 import { generateCaptions, generateVideo, logToCloudWatch } from './utils';
 let pRetry: any;
-(async () => {
-  pRetry = (await import('p-retry')).default;
-})();
+
+const loadPRetry = async () => {
+  if (!pRetry) {
+    pRetry = (await import('p-retry')).default;
+  }
+};
 import { RequestBody } from './types';
 
 const sqs = new AWS.SQS({
@@ -47,6 +50,7 @@ const processQueue = async () => {
 }
 
 const processMessageWithRetry = async (body: RequestBody) => {
+  await loadPRetry(); // Ensure pRetry is loaded before use
   await pRetry(() => processMessage(body), {
     onFailedAttempt: (error: any) => {
       logToCloudWatch(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
