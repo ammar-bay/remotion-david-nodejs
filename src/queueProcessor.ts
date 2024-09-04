@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
-import { generateCaptions, generateVideo } from './utils';
+import { generateCaptions, generateVideo, logToCloudWatch } from './utils';
+import pRetry from 'p-retry';
 import { RequestBody } from './types';
 
 const sqs = new AWS.SQS({ region: process.env.SQS_AWS_DEFAULT_REGION });
@@ -19,7 +20,7 @@ const processQueue = async () => {
         const body: RequestBody = JSON.parse(message.Body);
 
         // Process the message
-        await processMessage(body);
+        await processMessageWithRetry(body);
 
         // Delete the message from the queue
         await sqs.deleteMessage({
@@ -33,7 +34,14 @@ const processQueue = async () => {
   }
 };
 
-const processMessage = async (body: RequestBody) => {
+const processMessageWithRetry = async (body: RequestBody) => {
+  await pRetry(() => processMessage(body), {
+    onFailedAttempt: error => {
+      logToCloudWatch(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
+    },
+    retries: 5
+  });
+};
   let scenes = body.scenes;
 
   try {

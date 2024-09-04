@@ -8,6 +8,7 @@ import { execSync } from "child_process";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import AWS from 'aws-sdk';
 import { RequestBody, Scene } from "./types";
 import { AssemblyAI } from "assemblyai";
 
@@ -159,7 +160,26 @@ export const downloadAndConvertAudio = async (
   }
 };
 
-// class QueueProcessor {
+const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.env.SQS_AWS_DEFAULT_REGION });
+
+export const logToCloudWatch = async (message: string) => {
+  const params = {
+    logGroupName: 'YourLogGroupName',
+    logStreamName: 'YourLogStreamName',
+    logEvents: [
+      {
+        message,
+        timestamp: Date.now()
+      }
+    ]
+  };
+
+  try {
+    await cloudwatchLogs.putLogEvents(params).promise();
+  } catch (error) {
+    console.error('Error logging to CloudWatch:', error);
+  }
+};
 //   private requestQueue: RequestBody[] = [];
 //   private processing: boolean = false;
 //
