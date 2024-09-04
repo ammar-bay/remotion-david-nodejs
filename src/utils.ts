@@ -124,9 +124,6 @@ export async function generateVideo(
   console.log("Input props: ", inputProps);
   console.log("Webhook: ", webhook);
 
-  // save inputProps to a file
-  // fs.writeFileSync("inputProps.json", JSON.stringify(inputProps, null, 2));
-
   const maxRetries = 5;
   let attempt = 0;
 
