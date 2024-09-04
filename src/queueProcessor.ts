@@ -32,7 +32,7 @@ const processQueue = async () => {
       console.error("Error processing queue: ", error);
     }
   }
-};
+}
 
 const processMessageWithRetry = async (body: RequestBody) => {
   await pRetry(() => processMessage(body), {
