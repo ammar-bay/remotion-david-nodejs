@@ -64,9 +64,11 @@ app.post(
       if (ongoingRenders < 1) { // Assuming concurrency limit is 1
         console.log("Starting to process the queue immediately after sending message.");
         await processQueue();
-      } else {
-        console.log("Concurrency limit reached, will not start processing immediately.");
       }
+
+      // Start processing the queue after sending a message
+      console.log("Starting to process the queue after sending message.");
+      await processQueue();
     } catch (error) {
       console.error("Error sending message to SQS: ", error);
       res.status(500).send("Error queuing request");
