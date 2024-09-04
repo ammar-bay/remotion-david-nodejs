@@ -62,6 +62,14 @@ app.post(
 
 app.post("/webhook", async (req: Request, res: Response) => {
   console.log("WEBHOOK: ", req.body);
+  const { videoId } = req.body;
+
+  // Remove job from pending
+  pendingJobs.delete(videoId);
+
+  // Process next message
+  processQueue();
+
   res.status(200).send("Webhook received");
 });
 
