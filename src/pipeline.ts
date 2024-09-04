@@ -16,6 +16,7 @@ export const processRequestPipeline = async (body: RequestBody) => {
     const result = await sqs.sendMessage(params).promise();
     if (result.MessageId) {
       console.log(`Message sent to SQS for videoId: ${body.videoId}`);
+      // Add logic to process the message, e.g., interact with Lambda or MongoDB
     } else {
       console.error(`Failed to send message to SQS for videoId: ${body.videoId}`);
     }

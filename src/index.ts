@@ -99,7 +99,7 @@ const server = app.listen(PORT, async () => {
   }
 
   // Start processing the queue
-  processQueue();
+  await processQueue();
 
   //   await installWhisperCpp({
   //     to: path.join(process.cwd(), "whisper.cpp"),
