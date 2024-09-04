@@ -6,8 +6,13 @@ import { RequestBody } from './types';
 const sqs = new AWS.SQS({ region: process.env.SQS_AWS_DEFAULT_REGION });
 
 const processQueue = async () => {
+  const queueUrl = process.env.SQS_QUEUE_URL;
+  if (!queueUrl) {
+    throw new Error("SQS_QUEUE_URL is not defined in the environment variables");
+  }
+
   const params = {
-    QueueUrl: process.env.SQS_QUEUE_URL,
+    QueueUrl: queueUrl,
     MaxNumberOfMessages: 1,
     WaitTimeSeconds: 20,
   };
@@ -17,14 +22,14 @@ const processQueue = async () => {
       const data = await sqs.receiveMessage(params).promise();
       if (data.Messages && data.Messages.length > 0) {
         const message = data.Messages[0];
-        const body: RequestBody = JSON.parse(message.Body);
+        const body: RequestBody = JSON.parse(message.Body || '{}');
 
         // Process the message
         await processMessageWithRetry(body);
 
         // Delete the message from the queue
         await sqs.deleteMessage({
-          QueueUrl: process.env.SQS_QUEUE_URL,
+          QueueUrl: queueUrl,
           ReceiptHandle: message.ReceiptHandle!,
         }).promise();
       }
@@ -42,6 +47,8 @@ const processMessageWithRetry = async (body: RequestBody) => {
     retries: 5
   });
 };
+
+const processMessage = async (body: RequestBody) => {
   let scenes = body.scenes;
 
   try {
@@ -56,5 +63,8 @@ const processMessageWithRetry = async (body: RequestBody) => {
   } catch (error) {
     console.error("Error occurred while processing message: ", error);
   }
+}
 
-processQueue();
+(async () => {
+  await processQueue();
+})();
