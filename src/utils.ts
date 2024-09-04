@@ -19,6 +19,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
+const CONCURRENCY_LIMIT = 1; // Set your concurrency limit here
 export const pendingJobs = new Set<string>();
 
 export const checkAndProcessQueue = async () => {
