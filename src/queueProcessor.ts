@@ -6,7 +6,11 @@ let pRetry: any;
 })();
 import { RequestBody } from './types';
 
-const sqs = new AWS.SQS({ region: process.env.SQS_AWS_DEFAULT_REGION });
+const sqs = new AWS.SQS({
+  region: process.env.AWS_DEFAULT_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
 
 const processQueue = async () => {
   const queueUrl = process.env.SQS_QUEUE_URL;
