@@ -33,6 +33,8 @@ export const checkAndProcessQueue = async () => {
     await processQueue();
   } else {
     console.log("Concurrency limit reached, waiting for a slot...");
+    // Wait and then check again
+    setTimeout(checkAndProcessQueue, 5000);
   }
 }
 
