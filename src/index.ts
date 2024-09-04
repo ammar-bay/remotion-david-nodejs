@@ -100,10 +100,10 @@ const server = app.listen(PORT, async () => {
     console.log("Concurrency limit reached on startup, will not start processing immediately.");
   }
 
-  // Start processing the queue if not already running
+  // Start processing the queue on server startup if not already running
   if (!isProcessingQueue) {
     isProcessingQueue = true;
-    processQueue();
+    await checkAndProcessQueue();
   }
 
   //   await installWhisperCpp({
