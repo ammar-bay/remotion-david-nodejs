@@ -62,7 +62,7 @@ app.post(
 );
 
 app.post("/webhook", async (req: Request, res: Response) => {
-  console.log("WEBHOOK: ", req.body);
+  console.log("Webhook endpoint called with data: ", req.body);
   const { videoId } = req.body;
 
   // Remove job from pending
