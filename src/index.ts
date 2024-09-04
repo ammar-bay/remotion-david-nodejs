@@ -65,8 +65,6 @@ app.post("/webhook", handleRenderCompletion, async (req: Request, res: Response)
   console.log("Webhook endpoint called with data: ", req.body);
   const { videoId } = req.body;
 
-  console.log(`Removing job with videoId: ${videoId} from pending jobs.`);
-  pendingJobs.delete(videoId);
 
   res.status(200).send("Webhook received");
   console.log("Response sent to webhook caller.");
