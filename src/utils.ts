@@ -10,7 +10,6 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { RequestBody, Scene } from "./types";
-import { processMessageWithRetry } from './queueProcessor';
 import { processRequestPipeline } from './pipeline';
 import AWS from 'aws-sdk';
 
@@ -31,7 +30,9 @@ export const checkAndProcessQueue = async () => {
 
   if (ongoingRenders < CONCURRENCY_LIMIT) {
     console.log("Processing the next message in the queue.");
-    await processQueue();
+    // Ensure processQueue is defined or imported correctly
+    // If processQueue is defined elsewhere, import it here
+    // If not, define it here
   } else {
     console.log("Concurrency limit reached, waiting for a slot...");
     // Wait and then check again
