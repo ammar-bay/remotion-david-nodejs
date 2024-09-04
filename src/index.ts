@@ -174,6 +174,7 @@ export const processQueue = async () => {
         backoffDelay = Math.min(backoffDelay * 2, maxBackoffDelay);
         console.log(`No messages received. Increasing backoff delay to ${backoffDelay / 1000} seconds.`);
         await new Promise(resolve => setTimeout(resolve, backoffDelay));
+      }
     } catch (error) {
       console.error("Error processing queue: ", error);
     }
