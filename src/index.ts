@@ -3,7 +3,6 @@ dotenv.config();
 import { downloadWhisperModel, installWhisperCpp } from "@remotion/install-whisper-cpp";
 import bodyParser from "body-parser";
 import cors from "cors";
-import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import AWS from "aws-sdk";
