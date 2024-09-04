@@ -110,7 +110,13 @@ const server = app.listen(PORT, async () => {
 });
 
 server.setTimeout(600000);
+let isProcessQueueRunning = false;
 export const processQueue = async () => {
+  if (isProcessQueueRunning) {
+    console.log("processQueue is already running.");
+    return;
+  }
+  isProcessQueueRunning = true;
   const queueUrl = process.env.SQS_QUEUE_URL;
   if (!queueUrl) {
     throw new Error("SQS_QUEUE_URL is not defined in the environment variables");

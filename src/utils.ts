@@ -40,7 +40,13 @@ export const checkAndProcessQueue = async () => {
   }
 }
 
+let isProcessCaptionQueueRunning = false;
 export const processCaptionQueue = async () => {
+  if (isProcessCaptionQueueRunning) {
+    console.log("processCaptionQueue is already running.");
+    return;
+  }
+  isProcessCaptionQueueRunning = true;
   const captionQueueUrl = process.env.SQS_CAPTION_QUEUE_URL;
   if (!captionQueueUrl) {
     throw new Error("SQS_CAPTION_QUEUE_URL is not defined in the environment variables");
