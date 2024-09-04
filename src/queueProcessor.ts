@@ -50,6 +50,9 @@ const processQueue = async () => {
       }
     } catch (error: any) {
       console.error("Error processing queue: ", error);
+    } finally {
+      // Ensure the loop continues even if an error occurs
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 }
@@ -71,6 +74,8 @@ export const processMessageWithRetry = async (body: RequestBody) => {
         return;
       }
       console.error("All retry attempts failed.");
+      // Remove job from pending if all retries fail
+      pendingJobs.delete(body.videoId);
     }
   });
 };
@@ -89,6 +94,9 @@ const processMessage = async (body: RequestBody) => {
     });
   } catch (error) {
     console.error("Error occurred while processing message: ", error);
+  } finally {
+    // Ensure job is removed from pendingJobs
+    pendingJobs.delete(body.videoId);
   }
 }
 
