@@ -8,6 +8,13 @@ export const processRequestPipeline = async (body: RequestBody) => {
     const db = await connectToDatabase();
     const collection = db.collection('promotion_video_render');
 
+    // Check the number of ongoing renders
+    const ongoingRenders = await collection.countDocuments();
+    if (ongoingRenders >= 1) { // Assuming concurrency limit is 1
+      console.log("Concurrency limit reached, cannot process new request.");
+      return;
+    }
+
     // Insert the message into MongoDB
     await collection.insertOne({ videoId: body.videoId, status: 'processing' });
     console.log(`Inserted videoId: ${body.videoId} into MongoDB`);
