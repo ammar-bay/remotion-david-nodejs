@@ -12,18 +12,6 @@ const sqs = new AWS.SQS({
   region: process.env.AWS_DEFAULT_REGION,
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  // Check MongoDB and start processing the queue on server startup
-  const db = await connectToDatabase();
-  const collection = db.collection('promotion_video_render');
-  const ongoingRenders = await collection.countDocuments();
-  console.log(`Current ongoing renders on server startup: ${ongoingRenders}`);
-
-  if (ongoingRenders < 1) { // Assuming concurrency limit is 1
-    console.log("Starting to process the queue on server startup.");
-    await processQueue();
-  } else {
-    console.log("Concurrency limit reached on startup, will not start processing immediately.");
-  }
 });
 import { RequestBody, Scene } from "./types";
 import { generateCaptions, generateVideo, pendingJobs, processQueue } from "./utils";
@@ -109,6 +97,20 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const server = app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
+
+  // Check MongoDB and start processing the queue on server startup
+  const db = await connectToDatabase();
+  const collection = db.collection('promotion_video_render');
+  const ongoingRenders = await collection.countDocuments();
+  console.log(`Current ongoing renders on server startup: ${ongoingRenders}`);
+
+  if (ongoingRenders < 1) { // Assuming concurrency limit is 1
+    console.log("Starting to process the queue on server startup.");
+    await processQueue();
+  } else {
+    console.log("Concurrency limit reached on startup, will not start processing immediately.");
+  }
+
   //   await installWhisperCpp({
   //     to: path.join(process.cwd(), "whisper.cpp"),
   //     version: "1.5.5",
