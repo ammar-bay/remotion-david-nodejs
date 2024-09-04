@@ -1,7 +1,5 @@
-import {
-  downloadWhisperModel,
-  installWhisperCpp,
-} from "@remotion/install-whisper-cpp";
+import { hello } from "./hello";
+import { downloadWhisperModel, installWhisperCpp } from "@remotion/install-whisper-cpp";
 import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
