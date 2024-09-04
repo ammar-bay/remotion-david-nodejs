@@ -98,6 +98,9 @@ const server = app.listen(PORT, async () => {
     console.log("Concurrency limit reached on startup, will not start processing immediately.");
   }
 
+  // Start processing the queue
+  processQueue();
+
   //   await installWhisperCpp({
   //     to: path.join(process.cwd(), "whisper.cpp"),
   //     version: "1.5.5",
