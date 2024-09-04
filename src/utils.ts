@@ -21,7 +21,6 @@ export const sqs = new AWS.SQS({
 });
 
 const CONCURRENCY_LIMIT = 1; // Set your concurrency limit here
-export const pendingJobs = new Set<string>();
 
 export const checkAndProcessQueue = async () => {
   const db = await connectToDatabase();

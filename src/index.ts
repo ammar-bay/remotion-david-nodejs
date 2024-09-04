@@ -14,7 +14,7 @@ const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 import { RequestBody, Scene } from "./types";
-import { connectToDatabase, pendingJobs, checkAndProcessQueue } from "./utils";
+import { connectToDatabase, checkAndProcessQueue } from "./utils";
 import { processRequestPipeline } from "./pipeline";
 import axios from "axios";
 
@@ -99,7 +99,7 @@ const server = app.listen(PORT, async () => {
   }
 
   // Start processing the queue
-  await processQueue();
+  processQueue();
 
   //   await installWhisperCpp({
   //     to: path.join(process.cwd(), "whisper.cpp"),
@@ -126,11 +126,6 @@ export const processQueue = async () => {
   };
 
   while (true) {
-    if (pendingJobs.size > 0) {
-      // Wait for pending jobs to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      continue;
-    }
 
     try {
       const data = await sqs.receiveMessage(params).promise();
@@ -138,26 +133,19 @@ export const processQueue = async () => {
         const message = data.Messages[0];
         const body: RequestBody = JSON.parse(message.Body || '{}');
 
-        if (!pendingJobs.has(body.videoId)) {
-          // Add job to pending
-          pendingJobs.add(body.videoId);
+        console.log(`Processing message from SQS for videoId: ${body.videoId}`);
 
-          console.log(`Processing message from SQS for videoId: ${body.videoId}`);
+        try {
+          // Process the message
+          await processRequestPipeline(body);
 
-          try {
-            // Process the message
-            await processRequestPipeline(body);
-
-            // Delete the message from the queue
-            await sqs.deleteMessage({
-              QueueUrl: queueUrl,
-              ReceiptHandle: message.ReceiptHandle!,
-            }).promise();
-          } catch (error) {
-            console.error(`Error processing message for videoId: ${body.videoId}`, error);
-          }
-        } else {
-          console.log(`Job with videoId: ${body.videoId} is already being processed.`);
+          // Delete the message from the queue
+          await sqs.deleteMessage({
+            QueueUrl: queueUrl,
+            ReceiptHandle: message.ReceiptHandle!,
+          }).promise();
+        } catch (error) {
+          console.error(`Error processing message for videoId: ${body.videoId}`, error);
         }
       }
     } catch (error) {
