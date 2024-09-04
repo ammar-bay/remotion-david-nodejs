@@ -1,3 +1,4 @@
+import { MongoClient } from "mongodb";
 import { convertToCaptions, transcribe } from "@remotion/install-whisper-cpp";
 import {
   RenderMediaOnLambdaInput,
@@ -229,6 +230,16 @@ export const downloadAndConvertAudio = async (
 };
 
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.env.SQS_AWS_DEFAULT_REGION });
+
+export const connectToDatabase = async () => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not defined in the environment variables");
+  }
+  const client = new MongoClient(uri);
+  await client.connect();
+  return client.db(process.env.MONGODB_DB_NAME);
+};
 
 export const logToCloudWatch = async (message: string) => {
   const params = {

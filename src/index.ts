@@ -6,7 +6,7 @@ import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import AWS from "aws-sdk";
-import validateScene from "./middleware";
+import { validateScene } from "./middleware";
 
 const sqs = new AWS.SQS({
   region: process.env.AWS_DEFAULT_REGION,

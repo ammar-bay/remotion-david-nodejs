@@ -2,7 +2,7 @@ import AWS from 'aws-sdk';
 import { generateCaptions, generateVideo, logToCloudWatch } from './utils';
 import retry from 'retry';
 import { RequestBody } from './types';
-import { connectToDatabase } from './utils'; // Import the MongoDB connection utility
+import { connectToDatabase } from './utils';
 
 const sqs = new AWS.SQS({
   region: process.env.AWS_DEFAULT_REGION,

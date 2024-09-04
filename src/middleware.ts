@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { requestBodySchema } from "./types";
-import { connectToDatabase } from './utils'; // Import the MongoDB connection utility
+import { connectToDatabase } from './utils';
 
 // Middleware to validate the request body using Zod and apply default values
 const validateScene = (req: Request, res: Response, next: NextFunction) => {
