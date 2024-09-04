@@ -20,6 +20,7 @@ export const sqs = new AWS.SQS({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
+const CONCURRENCY_LIMIT = 1; // Set your concurrency limit here
 const CAPTION_CONCURRENCY_LIMIT = 1; // Set your caption concurrency limit here
 
 export const checkAndProcessQueue = async () => {
@@ -85,11 +86,15 @@ export const processCaptionQueue = async () => {
 
           // Send the updated request to the Lambda queue
           const lambdaQueueUrl = process.env.SQS_QUEUE_URL;
-          const params = {
-            QueueUrl: lambdaQueueUrl,
-            MessageBody: JSON.stringify(body),
-          };
-          await sqs.sendMessage(params).promise();
+          if (lambdaQueueUrl) {
+            const params = {
+              QueueUrl: lambdaQueueUrl,
+              MessageBody: JSON.stringify(body),
+            };
+            await sqs.sendMessage(params).promise();
+          } else {
+            console.error("SQS_QUEUE_URL is not defined in the environment variables");
+          }
           console.log(`Request for videoId: ${body.videoId} sent to Lambda SQS for processing.`);
 
           // Delete the message from the caption queue
