@@ -129,11 +129,6 @@ const assemblyAiClient = new AssemblyAI({
   apiKey: process.env.ASSEMBLYAI_API_KEY || "",
 });
 
-const version = inputProps.version || "default"; // Use a default value if version is not provided
-const webhook: RenderMediaOnLambdaInput["webhook"] = {
-  url: (process.env.REMOTION_WEBHOOK_URL || "").replace("<insert-version-here>", version),
-  secret: process.env.REMOTION_WEBHOOK_SECRET || null,
-};
 
 // export async function generateCaptions(scenes: Scene[]): Promise<Scene[]> {
 //   return await Promise.all(
@@ -204,6 +199,11 @@ export async function generateVideo(
   const composition = process.env.REMOTION_COMPOSITION_ID || "remotion-video";
   console.log("Triggering video rendering");
   console.log("Input props: ", inputProps);
+  const version = inputProps.version || "default"; // Use a default value if version is not provided
+  const webhook: RenderMediaOnLambdaInput["webhook"] = {
+    url: (process.env.REMOTION_WEBHOOK_URL || "").replace("<insert-version-here>", version),
+    secret: process.env.REMOTION_WEBHOOK_SECRET || null,
+  };
   console.log("Webhook: ", webhook);
 
   const maxRetries = 5;
