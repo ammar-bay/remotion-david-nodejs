@@ -15,6 +15,8 @@ const sceneSchema = z.object({
       })
     )
     .optional(),
+  soundtrack: z.string().url().optional(),
+  soundtrackVolume: z.number().int().optional(),
 });
 
 const requestBodySchema = z.object({
