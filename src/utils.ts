@@ -227,7 +227,7 @@ export async function generateVideo(
       console.log("Bucket name: ", bucketName);
       console.log("Render ID: ", renderId);
       // Send a webhook with the video ID and render ID
-      await axios.post("https://play.svix.com/in/e_aFmkBWVY3KZZ2dnWusR8aOAGfPb/", {
+      await axios.post("https://mktyjnfyururthtb564htgf.bubbleapps.io/version-test/api/1.1/wf/receive-renderid", {
         videoId: inputProps.videoId,
         renderId: renderId,
       });
