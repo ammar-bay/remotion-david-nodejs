@@ -15,11 +15,11 @@ const sceneSchema = z.object({
       })
     )
     .optional(),
-  version: z.string().optional(),
 });
 
 const requestBodySchema = z.object({
   scenes: z.array(sceneSchema),
+  version: z.string().optional(),
   fontUrl: z.string().optional(),
   borderColor: z.string().default("#000000"),
   fillColor: z.string().default("#ffffff"),
