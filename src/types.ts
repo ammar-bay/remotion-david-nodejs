@@ -15,12 +15,12 @@ const sceneSchema = z.object({
       })
     )
     .optional(),
-  soundtrack: z.string().url().optional(),
-  soundtrackVolume: z.number().int().optional(),
 });
 
 const requestBodySchema = z.object({
   scenes: z.array(sceneSchema),
+  soundtrack: z.string().url().optional(),
+  soundtrackVolume: z.number().int().optional(),
   version: z.string().optional(),
   fontUrl: z.string().optional(),
   borderColor: z.string().default("#000000"),
