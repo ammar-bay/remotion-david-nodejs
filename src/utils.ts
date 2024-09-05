@@ -129,8 +129,9 @@ const assemblyAiClient = new AssemblyAI({
   apiKey: process.env.ASSEMBLYAI_API_KEY || "",
 });
 
+const version = inputProps.version || "default"; // Use a default value if version is not provided
 const webhook: RenderMediaOnLambdaInput["webhook"] = {
-  url: process.env.REMOTION_WEBHOOK_URL || "",
+  url: (process.env.REMOTION_WEBHOOK_URL || "").replace("<insert-version-here>", version),
   secret: process.env.REMOTION_WEBHOOK_SECRET || null,
 };
 
