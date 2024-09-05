@@ -226,6 +226,12 @@ export async function generateVideo(
       console.log("Video rendering started");
       console.log("Bucket name: ", bucketName);
       console.log("Render ID: ", renderId);
+      // Send a webhook with the video ID and render ID
+      await axios.post("https://play.svix.com/in/e_aFmkBWVY3KZZ2dnWusR8aOAGfPb/", {
+        videoId: inputProps.videoId,
+        renderId: renderId,
+      });
+
       return { bucketName, renderId };
     } catch (error: any) {
       if (error.name === 'TooManyRequestsException' && attempt < maxRetries - 1) {
