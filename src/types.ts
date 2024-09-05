@@ -16,6 +16,7 @@ const sceneSchema = z.object({
     )
     .optional(),
   version: z.string().optional(),
+  version: z.string().optional(),
 });
 
 const requestBodySchema = z.object({

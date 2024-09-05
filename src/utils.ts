@@ -199,7 +199,7 @@ export async function generateVideo(
   const composition = process.env.REMOTION_COMPOSITION_ID || "remotion-video";
   console.log("Triggering video rendering");
   console.log("Input props: ", inputProps);
-  const version = inputProps.scenes[0].version || "default"; // Use a default value if version is not provided
+  const version = inputProps.version || "default"; // Use a default value if version is not provided
   const webhook: RenderMediaOnLambdaInput["webhook"] = {
     url: (process.env.REMOTION_WEBHOOK_URL || "").replace("<insert-version-here>", version),
     secret: process.env.REMOTION_WEBHOOK_SECRET || null,
@@ -228,7 +228,7 @@ export async function generateVideo(
       console.log("Bucket name: ", bucketName);
       console.log("Render ID: ", renderId);
       // Send a webhook with the video ID and render ID
-      const version = inputProps.scenes[0].version || "default"; // Use a default value if version is not provided
+      const version = inputProps.version || "default"; // Use a default value if version is not provided
       await axios.post(`https://mktyjnfyururthtb564htgf.bubbleapps.io/version-${version}/api/1.1/wf/receive-renderid`, {
         videoId: inputProps.videoId,
         renderId: renderId,
