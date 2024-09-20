@@ -36,7 +36,7 @@ export const processRequestPipeline = async (body: RequestBody) => {
     // Process and upload all videos to S3 in batches
     const s3Files: string[] = [];
     const batchSize = 6;
-    const processedScenes = [];
+    const processedScenes: RequestBody['scenes'] = [];
 
     for (let i = 0; i < body.scenes.length; i += batchSize) {
       const batch = body.scenes.slice(i, i + batchSize).map((scene, index) => ({
