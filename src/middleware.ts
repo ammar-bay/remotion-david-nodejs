@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { requestBodySchema } from "./types";
 import { connectToDatabase, checkAndProcessQueue } from './utils';
+import { deleteS3Files } from './s3Utils';
 import { processRequestPipeline } from './pipeline';
 import { deleteS3Files } from './s3Utils';
 
@@ -42,8 +43,8 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
 
     // Delete S3 files if any
     if (result.s3Files && result.s3Files.length > 0) {
-      await deleteS3Files(result.s3Files);
-      console.log(`Deleted ${result.s3Files.length} files from S3 for videoId: ${videoId}`);
+      await deleteS3Files(videoId);
+      console.log(`Deleted S3 files for videoId: ${videoId}`);
     }
 
     // Remove entry from MongoDB
