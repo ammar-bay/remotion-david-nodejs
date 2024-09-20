@@ -10,7 +10,7 @@ const s3 = new AWS.S3({
 
 const BUCKET_NAME = 'temporary-lambda-files';
 
-export async function uploadPexelsVideoToS3(videoUrl: string): Promise<string> {
+export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, fileCounter: number): Promise<string> {
   if (!videoUrl.includes('pexels')) {
     return videoUrl;
   }
@@ -18,8 +18,8 @@ export async function uploadPexelsVideoToS3(videoUrl: string): Promise<string> {
   const response = await axios.get(videoUrl, { responseType: 'arraybuffer' });
   const fileContent = Buffer.from(response.data, 'binary');
 
-  const fileName = videoUrl.split('/').pop();
-  const key = `${uuidv4()}/${fileName}`;
+  const fileExtension = videoUrl.split('.').pop();
+  const key = `${videoId}/video${fileCounter}.${fileExtension}`;
 
   await s3.putObject({
     Bucket: BUCKET_NAME,
@@ -32,13 +32,28 @@ export async function uploadPexelsVideoToS3(videoUrl: string): Promise<string> {
   return `https://${BUCKET_NAME}.s3.amazonaws.com/${encodeURIComponent(key)}`;
 }
 
-export async function deleteS3Files(keys: string[]): Promise<void> {
-  const objects = keys.map(key => ({ Key: key }));
-
-  await s3.deleteObjects({
+export async function deleteS3Files(videoId: string): Promise<void> {
+  const listParams = {
     Bucket: BUCKET_NAME,
-    Delete: { Objects: objects },
-  }).promise();
+    Prefix: `${videoId}/`
+  };
+
+  const listedObjects = await s3.listObjectsV2(listParams).promise();
+
+  if (listedObjects.Contents && listedObjects.Contents.length === 0) return;
+
+  const deleteParams = {
+    Bucket: BUCKET_NAME,
+    Delete: { Objects: [] }
+  };
+
+  listedObjects.Contents?.forEach(({ Key }) => {
+    if (Key) deleteParams.Delete.Objects.push({ Key });
+  });
+
+  await s3.deleteObjects(deleteParams).promise();
+
+  if (listedObjects.IsTruncated) await deleteS3Files(videoId);
 }
 
 export function getS3KeyFromUrl(url: string): string {

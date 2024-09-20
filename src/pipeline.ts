@@ -35,13 +35,11 @@ export const processRequestPipeline = async (body: RequestBody) => {
 
     // Process and upload Pexels videos to S3
     const s3Files: string[] = [];
-    const processedScenes = await Promise.all(body.scenes.map(async (scene) => {
+    const processedScenes = await Promise.all(body.scenes.map(async (scene, index) => {
       console.log(`Original video URL: ${scene.videoUrl}`);
-      const newVideoUrl = await uploadPexelsVideoToS3(scene.videoUrl);
+      const newVideoUrl = await uploadPexelsVideoToS3(scene.videoUrl, body.videoId, index + 1);
       console.log(`Processed video URL: ${newVideoUrl}`);
-      if (newVideoUrl !== scene.videoUrl) {
-        s3Files.push(getS3KeyFromUrl(newVideoUrl));
-      }
+      s3Files.push(getS3KeyFromUrl(newVideoUrl));
       return { ...scene, videoUrl: newVideoUrl };
     }));
 
