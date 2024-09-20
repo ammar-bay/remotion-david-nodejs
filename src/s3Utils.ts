@@ -1,6 +1,9 @@
 import AWS from 'aws-sdk';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 const s3 = new AWS.S3({
   region: process.env.AWS_DEFAULT_REGION,
@@ -16,10 +19,24 @@ export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, f
   }
 
   const response = await axios.get(videoUrl, { responseType: 'arraybuffer' });
-  const fileContent = Buffer.from(response.data, 'binary');
+  const tempDir = path.join(__dirname, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+  }
+  const inputPath = path.join(tempDir, `input_${videoId}_${fileCounter}.mp4`);
+  const outputPath = path.join(tempDir, `output_${videoId}_${fileCounter}.mp4`);
+  
+  fs.writeFileSync(inputPath, Buffer.from(response.data));
 
-  const fileExtension = videoUrl.split('.').pop();
-  const key = `${videoId}/video${fileCounter}.${fileExtension}`;
+  try {
+    execSync(`ffmpeg -i ${inputPath} -c:v libx264 -preset slow -crf 22 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=-1:1080" -c:a aac -b:a 192k ${outputPath}`);
+  } catch (error) {
+    console.error('Error processing video with FFmpeg:', error);
+    throw error;
+  }
+
+  const fileContent = fs.readFileSync(outputPath);
+  const key = `${videoId}/video${fileCounter}.mp4`;
 
   await s3.putObject({
     Bucket: BUCKET_NAME,
@@ -28,6 +45,10 @@ export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, f
     ContentType: 'video/mp4',
     ContentDisposition: 'inline',
   }).promise();
+
+  // Clean up temporary files
+  fs.unlinkSync(inputPath);
+  fs.unlinkSync(outputPath);
 
   return `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
 }
