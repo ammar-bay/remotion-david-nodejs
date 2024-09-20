@@ -34,9 +34,9 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
 
     // Find and remove entry from MongoDB
     const result = await collection.findOneAndDelete({ videoId });
-    console.log(`Attempted to delete entry for videoId: ${videoId}, Deleted count: ${result.ok}`);
+    console.log(`Attempted to delete entry for videoId: ${videoId}, Deleted count: ${result?.ok}`);
 
-    if (!result.value) {
+    if (!result || !result.value) {
       console.warn(`No entry found for videoId: ${videoId}`);
       return res.status(404).json({ message: "No entry found for the given videoId" });
     }
