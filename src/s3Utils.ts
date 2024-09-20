@@ -26,6 +26,7 @@ export async function uploadPexelsVideoToS3(videoUrl: string): Promise<string> {
     Key: key,
     Body: fileContent,
     ContentType: 'video/mp4',
+    ContentDisposition: 'inline',
   }).promise();
 
   return `https://${BUCKET_NAME}.s3.amazonaws.com/${encodeURIComponent(key)}`;
