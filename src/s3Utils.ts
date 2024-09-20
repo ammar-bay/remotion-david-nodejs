@@ -29,7 +29,7 @@ export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, f
     ContentDisposition: 'inline',
   }).promise();
 
-  return `https://${BUCKET_NAME}.s3.amazonaws.com/${encodeURIComponent(key)}`;
+  return `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
 }
 
 export async function deleteS3Files(videoId: string): Promise<void> {
