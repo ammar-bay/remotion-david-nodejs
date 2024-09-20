@@ -36,7 +36,9 @@ export const processRequestPipeline = async (body: RequestBody) => {
     // Process and upload Pexels videos to S3
     const s3Files: string[] = [];
     const processedScenes = await Promise.all(body.scenes.map(async (scene) => {
+      console.log(`Original video URL: ${scene.videoUrl}`);
       const newVideoUrl = await uploadPexelsVideoToS3(scene.videoUrl);
+      console.log(`Processed video URL: ${newVideoUrl}`);
       if (newVideoUrl !== scene.videoUrl) {
         s3Files.push(getS3KeyFromUrl(newVideoUrl));
       }
@@ -45,6 +47,7 @@ export const processRequestPipeline = async (body: RequestBody) => {
 
     // Update the body with processed scenes
     body.scenes = processedScenes;
+    console.log('Processed scenes:', JSON.stringify(body.scenes, null, 2));
 
     // Insert the message into MongoDB with S3 file information
     await collection.insertOne({ 

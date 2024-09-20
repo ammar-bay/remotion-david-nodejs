@@ -18,15 +18,17 @@ export async function uploadPexelsVideoToS3(videoUrl: string): Promise<string> {
   const response = await axios.get(videoUrl, { responseType: 'arraybuffer' });
   const fileContent = Buffer.from(response.data, 'binary');
 
-  const key = `${uuidv4()}/${videoUrl.split('/').pop()}`;
+  const fileName = videoUrl.split('/').pop();
+  const key = `${uuidv4()}/${fileName}`;
 
   await s3.putObject({
     Bucket: BUCKET_NAME,
     Key: key,
     Body: fileContent,
+    ContentType: 'video/mp4',
   }).promise();
 
-  return `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
+  return `https://${BUCKET_NAME}.s3.amazonaws.com/${encodeURIComponent(key)}`;
 }
 
 export async function deleteS3Files(keys: string[]): Promise<void> {
