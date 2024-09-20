@@ -1,7 +1,7 @@
 import { RequestBody } from "./types";
 import { generateVideo, sqs } from "./utils";
 import { connectToDatabase } from "./utils";
-import { uploadVideoToS3, getS3KeyFromUrl } from "./s3Utils";
+import { processVideoBatch, getS3KeyFromUrl } from "./s3Utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
   try {
@@ -33,15 +33,27 @@ export const processRequestPipeline = async (body: RequestBody) => {
       return;
     }
 
-    // Process and upload all videos to S3
+    // Process and upload all videos to S3 in batches
     const s3Files: string[] = [];
-    const processedScenes = await Promise.all(body.scenes.map(async (scene, index) => {
-      console.log(`Original video URL: ${scene.videoUrl}`);
-      const newVideoUrl = await uploadVideoToS3(scene.videoUrl, body.videoId, index + 1);
-      console.log(`Processed video URL: ${newVideoUrl}`);
-      s3Files.push(getS3KeyFromUrl(newVideoUrl));
-      return { ...scene, videoUrl: newVideoUrl };
-    }));
+    const batchSize = 6;
+    const processedScenes = [];
+
+    for (let i = 0; i < body.scenes.length; i += batchSize) {
+      const batch = body.scenes.slice(i, i + batchSize).map((scene, index) => ({
+        videoUrl: scene.videoUrl,
+        videoId: body.videoId,
+        fileCounter: i + index + 1
+      }));
+
+      console.log(`Processing batch ${i / batchSize + 1}`);
+      const processedBatch = await processVideoBatch(batch);
+
+      processedBatch.forEach((newVideoUrl, index) => {
+        console.log(`Processed video URL: ${newVideoUrl}`);
+        s3Files.push(getS3KeyFromUrl(newVideoUrl));
+        processedScenes.push({ ...body.scenes[i + index], videoUrl: newVideoUrl });
+      });
+    }
 
     // Update the body with processed scenes
     body.scenes = processedScenes;
