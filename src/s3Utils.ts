@@ -42,7 +42,7 @@ export async function deleteS3Files(videoId: string): Promise<void> {
 
   if (listedObjects.Contents && listedObjects.Contents.length === 0) return;
 
-  const deleteParams = {
+  const deleteParams: AWS.S3.DeleteObjectsRequest = {
     Bucket: BUCKET_NAME,
     Delete: { Objects: [] }
   };

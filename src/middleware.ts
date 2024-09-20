@@ -4,7 +4,6 @@ import { requestBodySchema } from "./types";
 import { connectToDatabase, checkAndProcessQueue } from './utils';
 import { deleteS3Files } from './s3Utils';
 import { processRequestPipeline } from './pipeline';
-import { deleteS3Files } from './s3Utils';
 
 // Middleware to validate the request body using Zod and apply default values
 const validateScene = (req: Request, res: Response, next: NextFunction) => {
