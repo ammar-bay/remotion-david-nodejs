@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import util from 'util';
+import { promisify } from 'util';
 
 const s3 = new AWS.S3({
   region: process.env.AWS_DEFAULT_REGION,
@@ -14,9 +14,9 @@ const s3 = new AWS.S3({
 
 const BUCKET_NAME = 'temporary-lambda-files';
 
-const execPromise = util.promisify(exec);
+const execAsync = promisify(exec);
 
-export async function uploadVideoToS3(videoUrl: string, videoId: string, fileCounter: number): Promise<string> {
+export async function processVideo(videoUrl: string, videoId: string, fileCounter: number): Promise<string> {
   const response = await axios({
     method: 'get',
     url: videoUrl,
@@ -36,7 +36,7 @@ export async function uploadVideoToS3(videoUrl: string, videoId: string, fileCou
   fs.writeFileSync(inputPath, Buffer.from(response.data));
 
   try {
-    await execPromise(`ffmpeg -i ${inputPath} -c:v libx264 -preset slow -crf 22 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080" -c:a aac -b:a 192k -y ${outputPath}`);
+    await execAsync(`ffmpeg -hwaccel auto -i ${inputPath} -c:v libx264 -preset ultrafast -crf 23 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080" -c:a aac -b:a 192k -y ${outputPath}`);
   } catch (error) {
     console.error('Error processing video with FFmpeg:', error);
     if (error instanceof Error && error.message.includes('Command failed')) {
@@ -64,7 +64,7 @@ export async function uploadVideoToS3(videoUrl: string, videoId: string, fileCou
 }
 
 export async function processVideoBatch(videos: { videoUrl: string; videoId: string; fileCounter: number }[]): Promise<string[]> {
-  return await Promise.all(videos.map(video => uploadVideoToS3(video.videoUrl, video.videoId, video.fileCounter)));
+  return Promise.all(videos.map(video => processVideo(video.videoUrl, video.videoId, video.fileCounter)));
 }
 
 export async function deleteS3Files(videoId: string): Promise<void> {

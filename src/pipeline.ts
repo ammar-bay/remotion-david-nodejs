@@ -45,7 +45,7 @@ export const processRequestPipeline = async (body: RequestBody) => {
         fileCounter: i + index + 1
       }));
 
-      console.log(`Processing batch ${i / batchSize + 1}`);
+      console.log(`Processing batch ${Math.floor(i / batchSize) + 1}`);
       const processedBatch = await processVideoBatch(batch);
 
       processedBatch.forEach((newVideoUrl, index) => {
