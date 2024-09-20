@@ -19,8 +19,6 @@ const sceneSchema = z.object({
 
 const requestBodySchema = z.object({
   scenes: z.array(sceneSchema),
-  soundtrack: z.string().optional(),
-  soundtrackVolume: z.number().int().optional(),
   version: z.string().optional(),
   fontUrl: z.string().optional(),
   borderColor: z.string().default("#000000"),
