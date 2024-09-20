@@ -13,12 +13,16 @@ const s3 = new AWS.S3({
 
 const BUCKET_NAME = 'temporary-lambda-files';
 
-export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, fileCounter: number): Promise<string> {
-  if (!videoUrl.includes('pexels')) {
-    return videoUrl;
-  }
+export async function uploadVideoToS3(videoUrl: string, videoId: string, fileCounter: number): Promise<string> {
 
-  const response = await axios.get(videoUrl, { responseType: 'arraybuffer' });
+  const response = await axios({
+    method: 'get',
+    url: videoUrl,
+    responseType: 'arraybuffer',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+  });
   const tempDir = path.join(__dirname, 'temp');
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);

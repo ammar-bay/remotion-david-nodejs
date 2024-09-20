@@ -1,7 +1,7 @@
 import { RequestBody } from "./types";
 import { generateVideo, sqs } from "./utils";
 import { connectToDatabase } from "./utils";
-import { uploadPexelsVideoToS3, getS3KeyFromUrl } from "./s3Utils";
+import { uploadVideoToS3, getS3KeyFromUrl } from "./s3Utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
   try {
@@ -33,11 +33,11 @@ export const processRequestPipeline = async (body: RequestBody) => {
       return;
     }
 
-    // Process and upload Pexels videos to S3
+    // Process and upload all videos to S3
     const s3Files: string[] = [];
     const processedScenes = await Promise.all(body.scenes.map(async (scene, index) => {
       console.log(`Original video URL: ${scene.videoUrl}`);
-      const newVideoUrl = await uploadPexelsVideoToS3(scene.videoUrl, body.videoId, index + 1);
+      const newVideoUrl = await uploadVideoToS3(scene.videoUrl, body.videoId, index + 1);
       console.log(`Processed video URL: ${newVideoUrl}`);
       s3Files.push(getS3KeyFromUrl(newVideoUrl));
       return { ...scene, videoUrl: newVideoUrl };

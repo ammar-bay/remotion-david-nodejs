@@ -40,11 +40,9 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "No entry found for the given videoId" });
     }
 
-    // Delete S3 files if any
-    if (result.s3Files && result.s3Files.length > 0) {
-      await deleteS3Files(videoId);
-      console.log(`Deleted S3 files for videoId: ${videoId}`);
-    }
+    // Delete S3 files
+    await deleteS3Files(videoId);
+    console.log(`Deleted S3 files for videoId: ${videoId}`);
 
     // Remove entry from MongoDB
     await collection.deleteOne({ videoId });
