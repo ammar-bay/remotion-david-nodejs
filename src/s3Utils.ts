@@ -23,13 +23,14 @@ export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, f
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
-  const inputPath = path.join(tempDir, `input_${videoId}_${fileCounter}.mp4`);
-  const outputPath = path.join(tempDir, `output_${videoId}_${fileCounter}.mp4`);
+  const uniqueId = uuidv4();
+  const inputPath = path.join(tempDir, `input_${videoId}_${fileCounter}_${uniqueId}.mp4`);
+  const outputPath = path.join(tempDir, `output_${videoId}_${fileCounter}_${uniqueId}.mp4`);
   
   fs.writeFileSync(inputPath, Buffer.from(response.data));
 
   try {
-    execSync(`ffmpeg -i ${inputPath} -c:v libx264 -preset slow -crf 22 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080" -c:a aac -b:a 192k ${outputPath}`);
+    execSync(`ffmpeg -i ${inputPath} -c:v libx264 -preset slow -crf 22 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080" -c:a aac -b:a 192k -y ${outputPath}`);
   } catch (error) {
     console.error('Error processing video with FFmpeg:', error);
     if (error instanceof Error && error.message.includes('Command failed')) {
@@ -39,7 +40,7 @@ export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, f
   }
 
   const fileContent = fs.readFileSync(outputPath);
-  const key = `${videoId}/video${fileCounter}.mp4`;
+  const key = `${videoId}/video${fileCounter}_${uniqueId}.mp4`;
 
   await s3.putObject({
     Bucket: BUCKET_NAME,
