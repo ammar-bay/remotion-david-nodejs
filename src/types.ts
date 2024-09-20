@@ -31,4 +31,12 @@ const requestBodySchema = z.object({
 type Scene = z.infer<typeof sceneSchema>;
 type RequestBody = z.infer<typeof requestBodySchema>;
 
-export { RequestBody, Scene, requestBodySchema, sceneSchema };
+const mongoDbDocumentSchema = z.object({
+  videoId: z.string(),
+  status: z.string(),
+  s3Files: z.array(z.string()).optional(),
+});
+
+type MongoDbDocument = z.infer<typeof mongoDbDocumentSchema>;
+
+export { RequestBody, Scene, requestBodySchema, sceneSchema, MongoDbDocument };

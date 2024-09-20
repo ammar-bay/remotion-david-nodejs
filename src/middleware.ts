@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requestBodySchema } from "./types";
 import { connectToDatabase, checkAndProcessQueue } from './utils';
 import { processRequestPipeline } from './pipeline';
+import { deleteS3Files } from './s3Utils';
 
 // Middleware to validate the request body using Zod and apply default values
 const validateScene = (req: Request, res: Response, next: NextFunction) => {
@@ -31,18 +32,24 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
     console.log("Connected to MongoDB for deletion operation");
     const collection = db.collection('promotion_video_render');
 
-    // Remove entry from MongoDB
-    const result = await collection.deleteOne({ videoId });
-    console.log(`Attempted to delete entry for videoId: ${videoId}, Deleted count: ${result.deletedCount}`);
+    // Find and remove entry from MongoDB
+    const result = await collection.findOneAndDelete({ videoId });
+    console.log(`Attempted to delete entry for videoId: ${videoId}, Deleted count: ${result.ok}`);
 
-    if (result.deletedCount === 0) {
+    if (!result.value) {
       console.warn(`No entry found for videoId: ${videoId}`);
       return res.status(404).json({ message: "No entry found for the given videoId" });
     }
 
     console.log(`Entry for videoId: ${videoId} removed from MongoDB`);
 
-    res.status(200).json({ message: "Render completed and entry removed" });
+    // Delete S3 files if any
+    if (result.value.s3Files && result.value.s3Files.length > 0) {
+      await deleteS3Files(result.value.s3Files);
+      console.log(`Deleted ${result.value.s3Files.length} files from S3 for videoId: ${videoId}`);
+    }
+
+    res.status(200).json({ message: "Render completed, entry removed, and S3 files cleaned up" });
 
     // Check and process the queue after render completion
     await checkAndProcessQueue();

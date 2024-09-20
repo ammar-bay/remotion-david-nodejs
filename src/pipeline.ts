@@ -1,6 +1,7 @@
 import { RequestBody } from "./types";
 import { generateVideo, sqs } from "./utils";
 import { connectToDatabase } from "./utils";
+import { uploadPexelsVideoToS3, getS3KeyFromUrl } from "./s3Utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
   try {
@@ -32,8 +33,25 @@ export const processRequestPipeline = async (body: RequestBody) => {
       return;
     }
 
-    // Insert the message into MongoDB
-    await collection.insertOne({ videoId: body.videoId, status: 'processing' });
+    // Process and upload Pexels videos to S3
+    const s3Files: string[] = [];
+    const processedScenes = await Promise.all(body.scenes.map(async (scene) => {
+      const newVideoUrl = await uploadPexelsVideoToS3(scene.videoUrl);
+      if (newVideoUrl !== scene.videoUrl) {
+        s3Files.push(getS3KeyFromUrl(newVideoUrl));
+      }
+      return { ...scene, videoUrl: newVideoUrl };
+    }));
+
+    // Update the body with processed scenes
+    body.scenes = processedScenes;
+
+    // Insert the message into MongoDB with S3 file information
+    await collection.insertOne({ 
+      videoId: body.videoId, 
+      status: 'processing',
+      s3Files: s3Files
+    });
     console.log(`Inserted videoId: ${body.videoId} into MongoDB`);
 
     // Send the job to Lambda
