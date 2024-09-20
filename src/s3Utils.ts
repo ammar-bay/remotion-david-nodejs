@@ -29,9 +29,12 @@ export async function uploadPexelsVideoToS3(videoUrl: string, videoId: string, f
   fs.writeFileSync(inputPath, Buffer.from(response.data));
 
   try {
-    execSync(`ffmpeg -i ${inputPath} -c:v libx264 -preset slow -crf 22 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=-1:1080" -c:a aac -b:a 192k ${outputPath}`);
+    execSync(`ffmpeg -i ${inputPath} -c:v libx264 -preset slow -crf 22 -r 30 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080" -c:a aac -b:a 192k ${outputPath}`);
   } catch (error) {
     console.error('Error processing video with FFmpeg:', error);
+    if (error instanceof Error && error.message.includes('Command failed')) {
+      console.error('FFmpeg command output:', error.message);
+    }
     throw error;
   }
 
