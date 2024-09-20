@@ -32,24 +32,25 @@ const handleRenderCompletion = async (req: Request, res: Response) => {
     console.log("Connected to MongoDB for deletion operation");
     const collection = db.collection('promotion_video_render');
 
-    // Find and remove entry from MongoDB
-    const result = await collection.findOneAndDelete({ videoId });
-    console.log(`Attempted to delete entry for videoId: ${videoId}, Deleted count: ${result?.ok}`);
+    // Find the entry in MongoDB
+    const result = await collection.findOne({ videoId });
 
-    if (!result || !result.value) {
+    if (!result) {
       console.warn(`No entry found for videoId: ${videoId}`);
       return res.status(404).json({ message: "No entry found for the given videoId" });
     }
 
-    console.log(`Entry for videoId: ${videoId} removed from MongoDB`);
-
     // Delete S3 files if any
-    if (result.value.s3Files && result.value.s3Files.length > 0) {
-      await deleteS3Files(result.value.s3Files);
-      console.log(`Deleted ${result.value.s3Files.length} files from S3 for videoId: ${videoId}`);
+    if (result.s3Files && result.s3Files.length > 0) {
+      await deleteS3Files(result.s3Files);
+      console.log(`Deleted ${result.s3Files.length} files from S3 for videoId: ${videoId}`);
     }
 
-    res.status(200).json({ message: "Render completed, entry removed, and S3 files cleaned up" });
+    // Remove entry from MongoDB
+    await collection.deleteOne({ videoId });
+    console.log(`Entry for videoId: ${videoId} removed from MongoDB`);
+
+    res.status(200).json({ message: "Render completed, S3 files cleaned up, and entry removed" });
 
     // Check and process the queue after render completion
     await checkAndProcessQueue();
