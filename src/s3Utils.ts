@@ -36,7 +36,7 @@ export async function processVideo(videoUrl: string, videoId: string, fileCounte
   fs.writeFileSync(inputPath, Buffer.from(response.data));
 
   try {
-    await execAsync(`ffmpeg -hwaccel auto -i ${inputPath} -c:v libx264 -preset ultrafast -crf 23 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080" -pix_fmt yuv420p -t 00:01:30 -vsync 0 -an -colorspace bt709 -color_primaries bt709 -color_trc bt709 -g 60 -strict experimental -max_muxing_queue_size 1024 -y ${outputPath}`);
+    await execAsync(`ffmpeg -hwaccel auto -i ${inputPath} -c:v libx264 -preset ultrafast -crf 23 -b:v 5000k -maxrate 5000k -bufsize 10000k -vf "scale=trunc(oh*a/2)*2:1080,fps=30" -pix_fmt yuv420p -t 00:01:30 -an -colorspace bt709 -color_primaries bt709 -color_trc bt709 -g 30 -strict experimental -max_muxing_queue_size 1024 -y ${outputPath}`);
   } catch (error) {
     console.error('Error processing video with FFmpeg:', error);
     if (error instanceof Error && error.message.includes('Command failed')) {
