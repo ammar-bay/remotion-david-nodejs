@@ -26,6 +26,7 @@ const requestBodySchema = z.object({
   layout: z.string().default("horizontal"),
   caption: z.boolean().default(true),
   videoId: z.string(),
+  word_boost: z.string().optional(),
 });
 
 type Scene = z.infer<typeof sceneSchema>;

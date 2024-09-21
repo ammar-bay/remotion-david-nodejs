@@ -59,6 +59,13 @@ export const processRequestPipeline = async (body: RequestBody) => {
     body.scenes = processedScenes;
     console.log('Processed scenes:', JSON.stringify(body.scenes, null, 2));
 
+    // Generate captions if needed
+    if (body.caption && body.word_boost) {
+      body.scenes = await generateCaptions(body.scenes, body.word_boost);
+    } else if (body.caption) {
+      body.scenes = await generateCaptions(body.scenes);
+    }
+
     // Insert the message into MongoDB with S3 file information
     await collection.insertOne({ 
       videoId: body.videoId, 

@@ -168,16 +168,23 @@ const assemblyAiClient = new AssemblyAI({
 //   );
 // }
 
-export async function generateCaptions(scenes: Scene[]): Promise<Scene[]> {
+export async function generateCaptions(scenes: Scene[], word_boost?: string): Promise<Scene[]> {
   console.log("Generating captions for scenes");
   return await Promise.all(
     scenes.map(async (scene) => {
-      const transcript = await assemblyAiClient.transcripts.transcribe({
+      const transcriptionConfig: any = {
         audio_url: scene.audioUrl,
-      });
+      };
+
+      if (word_boost) {
+        transcriptionConfig.word_boost = word_boost.split(',').map(word => word.trim());
+        transcriptionConfig.boost_param = 'high';
+      }
+
+      const transcript = await assemblyAiClient.transcripts.transcribe(transcriptionConfig);
 
       console.log("Captions generated for audio " + scene.audioUrl);
-      //       console.log("Transcript: ", transcript);
+      // console.log("Transcript: ", transcript);
 
       return {
         ...scene,
