@@ -200,8 +200,6 @@ export async function generateVideo(
   console.log("Triggering video rendering");
   console.log("Input props: ", inputProps);
   const version = inputProps.version || "default"; // Use a default value if version is not provided
-  const soundtrack = inputProps.soundtrack;
-  const soundtrackVolume = inputProps.soundtrackVolume;
   const webhook: RenderMediaOnLambdaInput["webhook"] = {
     url: (process.env.REMOTION_WEBHOOK_URL || "").replace("<insert-version-here>", version),
     secret: process.env.REMOTION_WEBHOOK_SECRET || null,
