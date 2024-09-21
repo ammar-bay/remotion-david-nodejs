@@ -66,6 +66,9 @@ export const processRequestPipeline = async (body: RequestBody) => {
       body.scenes = await generateCaptions(body.scenes);
     }
 
+    // Remove word_boost after caption generation
+    const { word_boost, ...lambdaBody } = body;
+
     // Insert the message into MongoDB with S3 file information
     await collection.insertOne({ 
       videoId: body.videoId, 
@@ -75,9 +78,9 @@ export const processRequestPipeline = async (body: RequestBody) => {
     console.log(`Inserted videoId: ${body.videoId} into MongoDB`);
 
     // Send the job to Lambda
-    const result = await generateVideo(body);
+    const result = await generateVideo(lambdaBody);
     if (result) {
-      console.log(`Video rendering started for videoId: ${body.videoId}`);
+      console.log(`Video rendering started for videoId: ${lambdaBody.videoId}`);
     } else {
       console.error(`Failed to start video rendering for videoId: ${body.videoId}`);
     }
