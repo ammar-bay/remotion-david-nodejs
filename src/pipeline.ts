@@ -1,6 +1,5 @@
 import { RequestBody } from "./types";
-import { generateVideo, sqs } from "./utils";
-import { connectToDatabase } from "./utils";
+import { generateVideo, sqs, generateCaptions, connectToDatabase } from "./utils";
 import { processVideoBatch, getS3KeyFromUrl } from "./s3Utils";
 
 export const processRequestPipeline = async (body: RequestBody) => {
